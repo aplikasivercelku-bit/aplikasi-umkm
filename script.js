@@ -84,7 +84,7 @@ function prosesDataImporAdmin(parsedData) {
         labelKategori: m.lk || m.labelKategori || "Menu",
         harga: m.h || m.harga || 0,
         deskripsi: m.d || m.deskripsi || "",
-        gambar: m.g || m.gambar || `https://placehold.co/400x300/1f1f24/f59e0b?text=${encodeURIComponent(m.n || m.nama || "Menu")}`
+        gambar: m.g || m.gambar || m.img || `https://placehold.co/400x300/1f1f24/f59e0b?text=${encodeURIComponent(m.n || m.nama || "Menu")}`
       }));
     }
   } else if (Array.isArray(parsedData)) {
@@ -95,7 +95,7 @@ function prosesDataImporAdmin(parsedData) {
       labelKategori: m.lk || m.labelKategori || "Menu",
       harga: m.h || m.harga || 0,
       deskripsi: m.d || m.deskripsi || "",
-      gambar: m.g || m.gambar || `https://placehold.co/400x300/1f1f24/f59e0b?text=${encodeURIComponent(m.n || m.nama || "Menu")}`
+      gambar: m.g || m.gambar || m.img || `https://placehold.co/400x300/1f1f24/f59e0b?text=${encodeURIComponent(m.n || m.nama || "Menu")}`
     }));
   } else {
     return false;
@@ -482,20 +482,29 @@ document.addEventListener("DOMContentLoaded", () => {
             const parsedData = JSON.parse(decodedText);
             if (prosesDataImporAdmin(parsedData)) {
               localStorage.setItem("umkm_client_logged", "true");
-              html5QrCodeScanner.stop().then(() => {
+              if (html5QrCodeScanner && html5QrCodeScanner.isScanning) {
+                html5QrCodeScanner.stop().then(() => {
+                  readerDiv.style.display = "none";
+                  cameraActive = false;
+                  loginScreen.style.display = "none";
+                  mainAppContent.style.display = "block";
+                  inisisasiAplikasiUtama();
+                  tampilkanToast(`✓ Barcode ${storeIdentity.name} berhasil dipindai!`);
+                }).catch(() => {
+                  readerDiv.style.display = "none";
+                  cameraActive = false;
+                  loginScreen.style.display = "none";
+                  mainAppContent.style.display = "block";
+                  inisisasiAplikasiUtama();
+                });
+              } else {
                 readerDiv.style.display = "none";
                 cameraActive = false;
                 loginScreen.style.display = "none";
                 mainAppContent.style.display = "block";
                 inisisasiAplikasiUtama();
                 tampilkanToast(`✓ Barcode ${storeIdentity.name} berhasil dipindai!`);
-              }).catch(() => {
-                readerDiv.style.display = "none";
-                cameraActive = false;
-                loginScreen.style.display = "none";
-                mainAppContent.style.display = "block";
-                inisisasiAplikasiUtama();
-              });
+              }
             }
           } catch (err) {
             console.log("Menunggu fokus QR code yang valid...");
@@ -504,7 +513,7 @@ document.addEventListener("DOMContentLoaded", () => {
         () => {}
       ).catch(() => { alert("Tidak dapat mengakses kamera. Pastikan izin kamera aktif."); });
     } else {
-      if (html5QrCodeScanner) {
+      if (html5QrCodeScanner && html5QrCodeScanner.isScanning) {
         html5QrCodeScanner.stop().then(() => {
           readerDiv.style.display = "none";
           cameraActive = false;
@@ -512,6 +521,9 @@ document.addEventListener("DOMContentLoaded", () => {
           readerDiv.style.display = "none";
           cameraActive = false;
         });
+      } else {
+        readerDiv.style.display = "none";
+        cameraActive = false;
       }
     }
   });

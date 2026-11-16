@@ -16,6 +16,30 @@ let qtyModal = 1;
 let kataKunciCari = "";
 let html5QrCodeScanner = null;
 
+// Fungsi untuk membunyikan suara "beep" kencang saat scan berhasil
+function playBeepSound() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Nada tinggi (A5) agar nyaring
+    
+    // Volume diatur maksimal (1.0) mengikuti volume HP/Laptop
+    gainNode.gain.setValueAtTime(1.0, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.15);
+  } catch (err) {
+    console.log("Audio beep tidak didukung browser:", err);
+  }
+}
+
 function applyStoreIdentity() {
   const isLogged = localStorage.getItem("umkm_client_logged") === "true";
   
@@ -410,6 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const jsonPart = rawContent.split(marker)[1];
           const parsedFullData = JSON.parse(jsonPart);
           if (prosesDataImporAdmin(parsedFullData)) {
+            playBeepSound(); // Bunyi beep saat sukses unggah file barcode
             localStorage.setItem("umkm_client_logged", "true");
             loginScreen.style.display = "none";
             mainAppContent.style.display = "block";
@@ -426,6 +451,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
           const parsedData = JSON.parse(rawContent);
           if (prosesDataImporAdmin(parsedData)) {
+            playBeepSound(); // Bunyi beep saat sukses file JSON
             localStorage.setItem("umkm_client_logged", "true");
             loginScreen.style.display = "none";
             mainAppContent.style.display = "block";
@@ -448,6 +474,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const parsedQrData = JSON.parse(decodedText);
         if (prosesDataImporAdmin(parsedQrData)) {
+          playBeepSound(); // Bunyi beep saat sukses scan file gambar QR
           localStorage.setItem("umkm_client_logged", "true");
           loginScreen.style.display = "none";
           mainAppContent.style.display = "block";
@@ -481,6 +508,7 @@ document.addEventListener("DOMContentLoaded", () => {
           try {
             const parsedData = JSON.parse(decodedText);
             if (prosesDataImporAdmin(parsedData)) {
+              playBeepSound(); // BUNYI BEEP KENCANG SAAT KAMERA BERHASIL MEMINDAI BARCODE
               localStorage.setItem("umkm_client_logged", "true");
               if (html5QrCodeScanner && html5QrCodeScanner.isScanning) {
                 html5QrCodeScanner.stop().then(() => {

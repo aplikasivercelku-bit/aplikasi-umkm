@@ -1,9 +1,9 @@
 const NOMOR_WA = "6287877611218";
 
 let storeIdentity = JSON.parse(localStorage.getItem("umkm_client_store_identity")) || {
-  name: "Kedai Nusantara",
+  name: "",
   sub: "Pesan Cepat Tanpa Antre",
-  logo: "KN"
+  logo: ""
 };
 
 let menuCustom = JSON.parse(localStorage.getItem("umkm_client_menu_custom")) || [];
@@ -17,11 +17,32 @@ let kataKunciCari = "";
 let html5QrCodeScanner = null;
 
 function applyStoreIdentity() {
+  const isLogged = localStorage.getItem("umkm_client_logged") === "true";
+  
+  if (!isLogged || !storeIdentity.name) {
+    document.title = "Menu Digital & Pemesanan";
+    document.querySelectorAll("#loginLogoText").forEach(el => {
+      el.textContent = "QR";
+      el.style.background = "var(--bg-elevated)";
+      el.style.color = "var(--text-muted)";
+    });
+    document.querySelectorAll("#loginTitleText").forEach(el => el.textContent = "Silakan Pindai Barcode");
+    return;
+  }
+
   document.title = `${storeIdentity.name} - Menu Digital & Pemesanan`;
   document.querySelectorAll("#navBrandTitle").forEach(el => el.textContent = storeIdentity.name);
   document.querySelectorAll("#navBrandSub").forEach(el => el.textContent = storeIdentity.sub);
-  document.querySelectorAll("#navBrandLogo").forEach(el => el.textContent = storeIdentity.logo);
-  document.querySelectorAll("#loginLogoText").forEach(el => el.textContent = storeIdentity.logo);
+  document.querySelectorAll("#navBrandLogo").forEach(el => {
+    el.textContent = storeIdentity.logo;
+    el.style.background = "";
+    el.style.color = "";
+  });
+  document.querySelectorAll("#loginLogoText").forEach(el => {
+    el.textContent = storeIdentity.logo;
+    el.style.background = "";
+    el.style.color = "";
+  });
   document.querySelectorAll("#loginTitleText").forEach(el => el.textContent = storeIdentity.name);
 }
 
@@ -489,11 +510,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnLogout) {
     btnLogout.addEventListener("click", () => {
       if (confirm("Yakin ingin keluar dari sesi menu ini?")) {
-        // Hapus status login, data pemesan, nomor meja, DAN keranjang belanjaan
         localStorage.removeItem("umkm_client_logged");
         localStorage.removeItem("umkm_nama_pemesan");
         localStorage.removeItem("umkm_no_meja");
         localStorage.removeItem("umkm_keranjang");
+        localStorage.removeItem("umkm_client_store_identity");
+        localStorage.removeItem("umkm_client_menu_custom");
         location.reload();
       }
     });
@@ -503,7 +525,6 @@ document.addEventListener("DOMContentLoaded", () => {
 function inisisasiAplikasiUtama() {
   applyStoreIdentity();
 
-  // Pastikan input Nama Lengkap & Nomor Meja selalu kosong di awal
   localStorage.removeItem("umkm_nama_pemesan");
   localStorage.removeItem("umkm_no_meja");
   const inputNama = document.getElementById("customerName");

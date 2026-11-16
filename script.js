@@ -472,7 +472,11 @@ document.addEventListener("DOMContentLoaded", () => {
       html5QrCodeScanner = new Html5Qrcode("reader");
       html5QrCodeScanner.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 220, height: 220 } },
+        { 
+          fps: 15, 
+          qrbox: { width: 250, height: 250 },
+          experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+        },
         (decodedText) => {
           try {
             const parsedData = JSON.parse(decodedText);
@@ -485,14 +489,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 mainAppContent.style.display = "block";
                 inisisasiAplikasiUtama();
                 tampilkanToast(`✓ Barcode ${storeIdentity.name} berhasil dipindai!`);
+              }).catch(() => {
+                readerDiv.style.display = "none";
+                cameraActive = false;
+                loginScreen.style.display = "none";
+                mainAppContent.style.display = "block";
+                inisisasiAplikasiUtama();
               });
             }
           } catch (err) {
-            alert("Data QR Code tidak valid.");
+            console.log("Menunggu fokus QR code yang valid...");
           }
         },
         () => {}
-      ).catch(() => { alert("Tidak dapat mengakses kamera."); });
+      ).catch(() => { alert("Tidak dapat mengakses kamera. Pastikan izin kamera aktif."); });
     } else {
       if (html5QrCodeScanner) {
         html5QrCodeScanner.stop().then(() => {

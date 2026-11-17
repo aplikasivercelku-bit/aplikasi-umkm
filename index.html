@@ -10,14 +10,13 @@
 </head>
 <body>
 
-  <!-- TAMPILAN UTAMA CLIENT (Langsung Terbuka Tanpa Scan/Login Lagi) -->
   <div id="mainAppContent">
     <header class="navbar">
       <div class="nav-brand">
         <div class="brand-logo" id="navBrandLogo">KN</div>
         <div>
           <h1 id="navBrandTitle">Kedai Nusantara</h1>
-          <span class="brand-sub" id="navBrandSub">Pesan Cepat Tanpa Antre</span>
+          <span class="brand-sub">Pesan Cepat Tanpa Antre</span>
         </div>
       </div>
 
@@ -43,9 +42,9 @@
 
     <main class="container">
       <section class="hero-banner">
-        <span class="pill-tag">BUKA SETIAP HARI</span>
-        <h2>Pilih Menu Favoritmu</h2>
-        <p>Klik ikon <strong>garis 3</strong> di pojok kanan atas untuk berpindah kategori menu dengan cepat.</p>
+        <span class="pill-tag">✨ MENU SPESIAL HARI INI</span>
+        <h2>Nikmati Rasa Terbaik</h2>
+        <p>Ketuk tombol garis tiga di kanan atas untuk memilih kategori kuliner favoritmu.</p>
       </section>
 
       <section class="search-section">
@@ -54,8 +53,8 @@
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <input type="text" id="searchMenuInput" placeholder="Cari nama menu... (contoh: kopi, nasi goreng, dimsum)" autocomplete="off">
-          <button type="button" id="btnClearSearch" class="clear-search-btn" style="display: none;" aria-label="Hapus pencarian">&times;</button>
+          <input type="text" id="searchMenuInput" placeholder="Cari nama menu lezat..." autocomplete="off">
+          <button type="button" id="btnClearSearch" class="clear-search-btn" style="display: none;" aria-label="Hapus">&times;</button>
         </div>
       </section>
 
@@ -79,14 +78,15 @@
     <aside class="drawer" id="categoryDrawer">
       <div class="drawer-header">
         <div>
-          <span class="pill-tag">KATEGORI MENU</span>
-          <h3>Daftar Menu</h3>
+          <span class="pill-tag">NAVIGASI KATEGORI</span>
+          <h3>Daftar Kategori</h3>
         </div>
         <button class="close-btn" id="btnCloseDrawer">&times;</button>
       </div>
       <ul class="category-list" id="categoryList"></ul>
     </aside>
 
+    <!-- Modal Detail Menu & Catatan Opsional -->
     <div class="modal-backdrop" id="itemModal">
       <div class="modal-card">
         <button class="modal-close" id="btnCloseItemModal">&times;</button>
@@ -97,14 +97,16 @@
         <div class="modal-body">
           <h2 id="modalItemName">Nama Menu</h2>
           <p class="modal-desc" id="modalItemDesc">Deskripsi singkat menu.</p>
+          
           <div class="form-group">
             <label for="inputCatatan">✏️ Catatan Khusus <span class="opt-label">OPSIONAL</span></label>
-            <input type="text" id="inputCatatan" placeholder="Contoh: Pedas sedang, es sedikit...">
+            <input type="text" id="inputCatatan" placeholder="Contoh: Tanpa es, level pedas sedang...">
           </div>
+
           <div class="qty-box">
             <div>
               <strong>Jumlah Porsi</strong>
-              <small>Pesan untuk sendiri atau ramean</small>
+              <small>Atur jumlah pesanan</small>
             </div>
             <div class="qty-controls">
               <button type="button" id="btnMinusQty">−</button>
@@ -112,6 +114,7 @@
               <button type="button" id="btnPlusQty">+</button>
             </div>
           </div>
+
           <div class="price-summary-box">
             <div class="price-row">
               <span>Harga satuan</span>
@@ -127,34 +130,61 @@
       </div>
     </div>
 
+    <!-- Modal Keranjang, Pembayaran QRIS/Tunai & Bukti Foto -->
     <div class="modal-backdrop" id="cartModal">
       <div class="modal-card cart-modal-card">
         <div class="cart-header">
           <div>
-            <span class="pill-tag">RINCIAN PESANAN</span>
-            <h2>Keranjang Anda</h2>
+            <span class="pill-tag">CHECKOUT PESANAN</span>
+            <h2>Keranjang & Pembayaran</h2>
           </div>
           <button class="close-btn" id="btnCloseCartModal">&times;</button>
         </div>
+        
         <div class="cart-items-container" id="cartItemsList"></div>
+
         <div class="checkout-form" id="checkoutFormSection">
-          <div class="checkout-title">
-            <h3>Nama Pemesan</h3>
-            <p>Isi nama agar pesananmu mudah kami kenali di WhatsApp.</p>
-          </div>
           <div class="form-group">
-            <label for="customerName">Nama Lengkap <span class="req-label">*WAJIB</span></label>
-            <input type="text" id="customerName" placeholder="Masukkan nama lengkap kamu...">
+            <label for="customerName">Nama Pemesan <span class="req-label">*WAJIB</span></label>
+            <input type="text" id="customerName" placeholder="Masukkan nama lengkap...">
           </div>
+          
           <div class="form-group">
             <label for="tableNumber">Nomor Meja <span class="opt-label">OPSIONAL</span></label>
-            <input type="text" id="tableNumber" placeholder="Contoh: 04 (Kosongkan jika Take Away)">
+            <input type="text" id="tableNumber" placeholder="Contoh: Meja 05 (Kosongkan jika Take Away)">
           </div>
+
+          <!-- Pilihan Metode Pembayaran -->
+          <div class="form-group">
+            <label>Metode Pembayaran <span class="req-label">*PILIH</span></label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px;">
+              <button type="button" class="pay-method-btn active" id="btnMethodTunai" onclick="pilihMetodeBayar('tunai')">💵 Bayar Tunai</button>
+              <button type="button" class="pay-method-btn" id="btnMethodQris" onclick="pilihMetodeBayar('qris')">📱 QRIS / Transfer</button>
+            </div>
+          </div>
+
+          <!-- Bagian khusus QRIS -->
+          <div id="qrisSectionContainer" style="display: none; background: var(--bg-elevated); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center; margin-bottom: 14px;">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Scan QRIS di bawah ini untuk melakukan pembayaran:</p>
+            <img id="displayQrisImage" src="" alt="QRIS Toko" style="max-width: 180px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px; display: none;" onerror="this.style.display='none'">
+            <div id="noQrisPlaceholder" style="font-size: 0.85rem; color: var(--danger); margin-bottom: 10px; display: none;">QRIS belum diatur oleh Admin. Silakan pilih Tunai atau hubungi kasir.</div>
+            
+            <div class="form-group" style="text-align: left; margin-bottom: 0;">
+              <label style="font-size: 0.82rem;">Unggah Foto Bukti Pembayaran <span class="req-label">*WAJIB JIKA QRIS</span></label>
+              <input type="file" id="clientPaymentProofFile" accept="image/*" style="background: var(--bg-dark); border: 1px solid var(--border-color); padding: 8px; border-radius: 8px; width: 100%; color: var(--text-main); font-size: 0.82rem;">
+            </div>
+            <div id="proofPreviewContainer" style="margin-top: 8px; display: none;">
+              <img id="clientProofPreview" src="" alt="Bukti Transfer" style="max-width: 100px; border-radius: 6px; border: 1px solid var(--border-color);">
+              <small style="display: block; color: var(--accent); font-size: 0.75rem;">Bukti terlampir</small>
+            </div>
+          </div>
+
           <div class="cart-grand-total">
             <span>Total Pembayaran</span>
             <strong id="cartGrandTotal">Rp 0</strong>
           </div>
-          <button class="btn-wa btn-full" id="btnSendWhatsApp">Lanjut ke WhatsApp &rarr;</button>
+
+          <button class="btn-wa btn-full" id="btnSendWhatsApp">Kirim Pesanan ke WhatsApp &rarr;</button>
         </div>
       </div>
     </div>

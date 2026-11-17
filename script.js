@@ -3,8 +3,7 @@ const NOMOR_WA = "6287877611218";
 let storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || {
   name: "Caffe Santai HAHAHA",
   logo: "CS",
-  qrisImg: "",
-  qrisText: "DANA/OVO/Transfer: 087877611218 a.n Olan"
+  qrisText: "OLAN MAULANA Bank Mandiri 1630011235432"
 };
 
 let menuCustom = JSON.parse(localStorage.getItem("umkm_menu_custom")) || [
@@ -184,10 +183,8 @@ function pilihMetodeBayar(metode) {
   const btnTunai = document.getElementById("btnMethodTunai");
   const btnQris = document.getElementById("btnMethodQris");
   const qrisContainer = document.getElementById("qrisSectionContainer");
-  const displayQrisImg = document.getElementById("displayQrisImage");
   const displayQrisText = document.getElementById("displayQrisText");
 
-  // Ambil data store identity terbaru dari admin
   const currentStore = JSON.parse(localStorage.getItem("umkm_store_identity")) || storeIdentity;
 
   if (metode === "tunai") {
@@ -199,17 +196,8 @@ function pilihMetodeBayar(metode) {
     if (btnTunai) btnTunai.classList.remove("active");
     if (qrisContainer) qrisContainer.style.display = "block";
 
-    if (currentStore.qrisImg) {
-      if (displayQrisImg) {
-        displayQrisImg.src = currentStore.qrisImg;
-        displayQrisImg.style.display = "inline-block";
-      }
-    } else {
-      if (displayQrisImg) displayQrisImg.style.display = "none";
-    }
-
     if (displayQrisText) {
-      displayQrisText.textContent = currentStore.qrisText || "Silakan transfer ke nomor rekening/QRIS terlampir.";
+      displayQrisText.textContent = currentStore.qrisText || "OLAN MAULANA Bank Mandiri 1630011235432";
     }
   }
 }
@@ -300,7 +288,7 @@ function kirimKeWhatsApp() {
     return;
   }
 
-  // Pembuatan No Order Otomatis oleh Sistem
+  // No Order otomatis oleh sistem
   const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
   const keteranganMeja = nomorMeja !== "" ? nomorMeja : "Take Away";
   const labelBayar = metodePembayaran === "qris" ? "QRIS / Transfer (Bukti Terlampir)" : "Tunai (Bayar di Kasir)";
@@ -412,7 +400,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const openCartHandler = () => {
     const cartModal = document.getElementById("cartModal");
     if (cartModal) cartModal.classList.add("active");
-    // Perbarui teks QRIS dari admin setiap kali keranjang dibuka
     pilihMetodeBayar(metodePembayaran);
   };
 

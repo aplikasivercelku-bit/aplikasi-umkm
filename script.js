@@ -390,11 +390,17 @@ function kirimKeWhatsApp() {
   const targetWa = currentStore.wa || NOMOR_WA;
 
   const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
-  const keteranganMeja = nomorMeja !== "" ? nomorMeja : "Take Away";
   
-  // Menyesuaikan teks metode pembayaran dan status sesuai permintaan
+  // Logika pengecekan nomor meja: jika kosong diganti Keterangan/Take Away, jika ada disematkan
+  let infoMejaLabel = "No. Meja";
+  let infoMejaValue = nomorMeja;
+  if (!nomorMeja) {
+    infoMejaLabel = "Keterangan / Tipe";
+    infoMejaValue = "Take Away";
+  }
+
   let labelBayar = "Tunai (Bayar di Kasir)";
-  let statusBayar = "Selesai";
+  let statusBayar = "Pembayaran selesai.";
   
   if (metodePembayaran === "qris") {
     labelBayar = "QRIS / Transfer (Kirim Bukti Pembayaran segera ya)";
@@ -403,7 +409,7 @@ function kirimKeWhatsApp() {
   let pesanWA = `*HALO ${currentStore.name.toUpperCase()}, SAYA MAU PESAN MENU*\n==============================\n`;
   pesanWA += `*No. Order:* ${orderId}\n`;
   pesanWA += `*Nama Pemesan:* ${namaPemesan}\n`;
-  pesanWA += `*No. Meja:* ${keteranganMeja}\n`;
+  pesanWA += `*${infoMejaLabel}:* ${infoMejaValue}\n`;
   pesanWA += `*Pembayaran:* ${labelBayar}\n`;
   pesanWA += `*Status:* ${statusBayar}\n`;
   pesanWA += `==============================\n\n*DAFTAR PESANAN:*\n`;

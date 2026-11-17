@@ -111,7 +111,6 @@ function sinkronisasiDariUrlBarcode() {
 }
 
 // 2. Tarik menu terbaru secara otomatis dari Cloud Sync berdasarkan ID Toko (?store=...)
-// Sehingga meskipun menggunakan 1 Barcode lama, menu baru dari Panel Admin langsung muncul otomatis!
 async function tarikMenuTerbaruDariCloud() {
   const params = new URLSearchParams(window.location.search);
   const currentStore = JSON.parse(localStorage.getItem("umkm_store_identity")) || storeIdentity;
@@ -459,42 +458,24 @@ function kirimKeWhatsApp() {
     labelBayar = "QRIS / Transfer (Kirim Bukti Pembayaran segera ya)";
   }
 
-  let pesanWA = `*HALO ${currentStore.name.toUpperCase()}, SAYA MAU PESAN MENU*
-==============================
-`;
-  pesanWA += `*No. Order:* ${orderId}
-`;
-  pesanWA += `*Nama Pemesan:* ${namaPemesan}
-`;
-  pesanWA += `*${infoLabel}:* ${infoValue}
-`;
-  pesanWA += `*Pembayaran:* ${labelBayar}
-`;
-  pesanWA += `*Status:* ${statusBayar}
-`;
-  pesanWA += `==============================
-
-*DAFTAR PESANAN:*
-`;
+  let pesanWA = `*HALO ${currentStore.name.toUpperCase()}, SAYA MAU PESAN MENU*\n==============================\n`;
+  pesanWA += `*No. Order:* ${orderId}\n`;
+  pesanWA += `*Nama Pemesan:* ${namaPemesan}\n`;
+  pesanWA += `*${infoLabel}:* ${infoValue}\n`;
+  pesanWA += `*Pembayaran:* ${labelBayar}\n`;
+  pesanWA += `*Status:* ${statusBayar}\n`;
+  pesanWA += `==============================\n\n*DAFTAR PESANAN:*\n`;
 
   let grandTotal = 0;
   keranjang.forEach((item, i) => {
     const subtotal = item.harga * item.qty;
     grandTotal += subtotal;
-    pesanWA += `${i + 1}. *${item.nama}* (${item.qty}x) - ${formatRupiah(subtotal)}
-`;
-    if (item.catatan) pesanWA += `   _Catatan: ${item.catatan}_
-`;
+    pesanWA += `${i + 1}. *${item.nama}* (${item.qty}x) - ${formatRupiah(subtotal)}\n`;
+    if (item.catatan) pesanWA += `   _Catatan: ${item.catatan}_\n`;
   });
 
-  pesanWA += `
-==============================
-*TOTAL BAYAR: ${formatRupiah(grandTotal)}*
-==============================
-
-`;
-  pesanWA += `Terima kasih banyak atas kunjungan dan pesanan Anda di *${currentStore.name}*! 🙏✨
-`;
+  pesanWA += `\n==============================\n*TOTAL BAYAR: ${formatRupiah(grandTotal)}*\n==============================\n\n`;
+  pesanWA += `Terima kasih banyak atas kunjungan dan pesanan Anda di *${currentStore.name}*! 🙏✨\n`;
   pesanWA += `Kami sangat senang bisa melayani Anda. Semoga hari Anda menyenangkan, dan kami tunggu kehadiran serta pesanan Anda kembali ya! 😊 Kapan-kapan mampir lagi!`;
 
   window.open(`https://wa.me/${targetWa}?text=${encodeURIComponent(pesanWA)}`, "_blank");

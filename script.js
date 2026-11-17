@@ -1,21 +1,48 @@
 const NOMOR_WA = "6287877611218";
 
 let storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || {
-  name: "Caffe Santai HAHAHA",
-  logo: "CS",
+  name: "Kedai Nusantara",
+  logo: "KN",
   qrisText: "OLAN MAULANA Bank Mandiri 1630011235432"
 };
 
-// DATA DEFAULT MENU (Menjamin menu dan gambar sigmawire.net selalu tampil di client meskipun diakses dari scan barcode baru)
+// Data menu default persis seperti pada video demonstrasi Anda (Roti Bakar, Red Velvet, Kentang Goreng, Es Alpukat)
 let defaultMenuList = [
   { 
     id: 1718000001, 
-    nama: "Es Cerry", 
-    kategori: "non-kopi", 
-    labelKategori: "Non-Kopi", 
+    nama: "Roti Bakar", 
+    kategori: "bakaran", 
+    labelKategori: "BAKARAN", 
+    harga: 16000, 
+    deskripsi: "ENAK", 
+    gambar: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=400&q=80" 
+  },
+  { 
+    id: 1718000002, 
+    nama: "Red Velvet", 
+    kategori: "kopi", 
+    labelKategori: "KOPI", 
     harga: 25000, 
-    deskripsi: "Segar & Enak", 
-    gambar: "https://cdn.corenexis.com/f/125bqwY1.jpg" 
+    deskripsi: "Segarrr", 
+    gambar: "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=400&q=80" 
+  },
+  { 
+    id: 1718000003, 
+    nama: "Kentang Goreng", 
+    kategori: "tambahan", 
+    labelKategori: "TAMBAHAN / TOPPING", 
+    harga: 20000, 
+    deskripsi: "Gurih & Enak", 
+    gambar: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=400&q=80" 
+  },
+  { 
+    id: 1718000004, 
+    nama: "Es Alpukat", 
+    kategori: "non-kopi", 
+    labelKategori: "NON-KOPI", 
+    harga: 15000, 
+    deskripsi: "Segar", 
+    gambar: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=400&q=80" 
   }
 ];
 
@@ -139,7 +166,6 @@ function renderMenu() {
   menuTersaring.forEach((item) => {
     const card = document.createElement("article");
     card.className = "menu-card";
-    // Memastikan gambar merender URL dari sigmawire.net secara akurat
     card.innerHTML = `
       <div class="card-img-box" onclick="bukaModalItem(${item.id})">
         <img src="${item.gambar}" alt="${item.nama}" onerror="this.src='https://placehold.co/400x300/1f1f24/f59e0b?text=${encodeURIComponent(item.nama)}'">

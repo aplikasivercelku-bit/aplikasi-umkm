@@ -89,7 +89,6 @@ function sinkronisasiDariUrlBarcode() {
   }
 }
 
-// Jalankan sinkronisasi segera sebelum memuat state lokal
 sinkronisasiDariUrlBarcode();
 
 storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || storeIdentity;
@@ -104,7 +103,6 @@ let itemDipilih = null;
 let qtyModal = 1;
 let kataKunciCari = "";
 let metodePembayaran = "tunai"; 
-let base64BuktiBayar = "";
 
 const DAFTAR_KATEGORI = [
   { id: "semua", nama: "Semua Menu" },
@@ -387,26 +385,27 @@ function kirimKeWhatsApp() {
     alert("Keranjang pesanan masih kosong.");
     return;
   }
-  if (metodePembayaran === "qris" && !base64BuktiBayar) {
-    alert("Anda memilih QRIS / Transfer. Mohon unggah foto bukti pembayaran terlebih dahulu.");
-    return;
-  }
 
   const currentStore = JSON.parse(localStorage.getItem("umkm_store_identity")) || storeIdentity;
   const targetWa = currentStore.wa || NOMOR_WA;
 
   const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
   const keteranganMeja = nomorMeja !== "" ? nomorMeja : "Take Away";
-  const labelBayar = metodePembayaran === "qris" ? "QRIS / Transfer (Bukti Terlampir)" : "Tunai (Bayar di Kasir)";
+  
+  // Menyesuaikan teks metode pembayaran dan status sesuai permintaan
+  let labelBayar = "Tunai (Bayar di Kasir)";
+  let statusBayar = "Pembayaran selesai (Cek segera Ya)";
+  
+  if (metodePembayaran === "qris") {
+    labelBayar = "QRIS / Transfer (Kirim Bukti Pembayaran segera ya)";
+  }
 
   let pesanWA = `*HALO ${currentStore.name.toUpperCase()}, SAYA MAU PESAN MENU*\n==============================\n`;
   pesanWA += `*No. Order:* ${orderId}\n`;
   pesanWA += `*Nama Pemesan:* ${namaPemesan}\n`;
   pesanWA += `*No. Meja:* ${keteranganMeja}\n`;
   pesanWA += `*Pembayaran:* ${labelBayar}\n`;
-  if (metodePembayaran === "qris") {
-    pesanWA += `*Status:* [Bukti Pembayaran Telah Diunggah Client]\n`;
-  }
+  pesanWA += `*Status:* ${statusBayar}\n`;
   pesanWA += `==============================\n\n*DAFTAR PESANAN:*\n`;
 
   let grandTotal = 0;
@@ -426,7 +425,6 @@ function kirimKeWhatsApp() {
   if (inputNama) inputNama.value = "";
   if (inputMeja) inputMeja.value = "";
   keranjang = [];
-  base64BuktiBayar = "";
   simpanStateLocal();
   updateTampilanKeranjang();
   const cartModal = document.getElementById("cartModal");
@@ -529,24 +527,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnCloseCartModal) {
     btnCloseCartModal.addEventListener("click", () => {
       document.getElementById("cartModal").classList.remove("active");
-    });
-  }
-
-  const clientPaymentProofFile = document.getElementById("clientPaymentProofFile");
-  if (clientPaymentProofFile) {
-    clientPaymentProofFile.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          base64BuktiBayar = evt.target.result;
-          const preview = document.getElementById("clientProofPreview");
-          if (preview) preview.src = base64BuktiBayar;
-          const container = document.getElementById("proofPreviewContainer");
-          if (container) container.style.display = "block";
-        };
-        reader.readAsDataURL(file);
-      }
     });
   }
 

@@ -6,8 +6,8 @@ let storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || {
   qrisImg: ""
 };
 
-// DAFTAR SELURUH MENU LENGKAP SESUAI DARI PANEL ADMIN
-let menuCustom = JSON.parse(localStorage.getItem("umkm_client_menu_custom")) || [
+// MENGAMBIL MENU DARI PANEL ADMIN (umkm_menu_custom) ATAU FALLBACK KE DEFAULT
+let menuCustom = JSON.parse(localStorage.getItem("umkm_menu_custom")) || JSON.parse(localStorage.getItem("umkm_client_menu_custom")) || [
   { id: 1, nama: "Roti Bakar", kategori: "bakaran", labelKategori: "Bakaran", harga: 16000, deskripsi: "ENAK", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Roti+Bakar" },
   { id: 2, nama: "Red Velvet", kategori: "kopi", labelKategori: "Kopi", harga: 25000, deskripsi: "Segarrr", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Red+Velvet" },
   { id: 3, nama: "Kentang Goreng", kategori: "tambahan", labelKategori: "Tambahan / Topping", harga: 20000, deskripsi: "Gurih & Enak", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Kentang+Goreng" },

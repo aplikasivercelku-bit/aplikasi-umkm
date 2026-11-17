@@ -6,12 +6,8 @@ let storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || {
   qrisImg: ""
 };
 
-// SINKRONISASI OTOMATIS: Membaca data menu dari Panel Admin (umkm_menu_custom)
 let menuCustom = JSON.parse(localStorage.getItem("umkm_menu_custom")) || [
-  { id: 1, nama: "Roti Bakar", kategori: "bakaran", labelKategori: "Bakaran", harga: 16000, deskripsi: "ENAK", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Roti+Bakar" },
-  { id: 2, nama: "Red Velvet", kategori: "kopi", labelKategori: "Kopi", harga: 25000, deskripsi: "Segarrr", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Red+Velvet" },
-  { id: 3, nama: "Kentang Goreng", kategori: "tambahan", labelKategori: "Tambahan / Topping", harga: 20000, deskripsi: "Gurih & Enak", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Kentang+Goreng" },
-  { id: 4, nama: "Es Alpukat", kategori: "non-kopi", labelKategori: "Non-Kopi", harga: 15000, deskripsi: "Segar", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Es+Alpukat" }
+  { id: 1, nama: "Nasi Goreng", kategori: "makanan-berat", labelKategori: "Makanan Berat", harga: 20000, deskripsi: "ENAKKK", gambar: "https://sigmawire.net/uploads/img_67c34b12574e8.jpg" }
 ];
 
 let DATA_MENU = [...menuCustom];
@@ -20,7 +16,7 @@ let kategoriAktif = localStorage.getItem("umkm_kategori_aktif") || "semua";
 let itemDipilih = null;
 let qtyModal = 1;
 let kataKunciCari = "";
-let metodePembayaran = "tunai"; // tunai atau qris
+let metodePembayaran = "tunai"; 
 let base64BuktiBayar = "";
 
 const DAFTAR_KATEGORI = [

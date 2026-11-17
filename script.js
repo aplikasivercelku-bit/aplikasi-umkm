@@ -7,7 +7,7 @@ let storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || {
 };
 
 let menuCustom = JSON.parse(localStorage.getItem("umkm_menu_custom")) || [
-  { id: 1, nama: "Nasi Goreng", kategori: "makanan-berat", labelKategori: "Makanan Berat", harga: 25000, deskripsi: "Enak & Lezat", gambar: "https://sigmawire.net/uploads/img_67c34b12574e8.jpg" }
+  { id: 1, nama: "Es Cerry", kategori: "non-kopi", labelKategori: "Non-Kopi", harga: 25000, deskripsi: "Segar & Enak", gambar: "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=400&q=80" }
 ];
 
 let DATA_MENU = [...menuCustom];
@@ -32,10 +32,11 @@ const DAFTAR_KATEGORI = [
 ];
 
 function applyClientIdentity() {
-  if (storeIdentity.name) {
-    document.title = `${storeIdentity.name} - Menu Digital`;
-    document.querySelectorAll("#navBrandTitle").forEach(el => el.textContent = storeIdentity.name);
-    document.querySelectorAll("#navBrandLogo").forEach(el => el.textContent = storeIdentity.logo);
+  const currentStore = JSON.parse(localStorage.getItem("umkm_store_identity")) || storeIdentity;
+  if (currentStore.name) {
+    document.title = `${currentStore.name} - Menu Digital`;
+    document.querySelectorAll("#navBrandTitle").forEach(el => el.textContent = currentStore.name);
+    document.querySelectorAll("#navBrandLogo").forEach(el => el.textContent = currentStore.logo);
   }
 }
 
@@ -60,6 +61,12 @@ function renderKategoriDrawer() {
   const listEl = document.getElementById("categoryList");
   if (!listEl) return;
   listEl.innerHTML = "";
+
+  // Sinkronisasi data terbaru
+  const latestCustomMenu = JSON.parse(localStorage.getItem("umkm_menu_custom"));
+  if (latestCustomMenu && latestCustomMenu.length > 0) {
+    DATA_MENU = [...latestCustomMenu];
+  }
 
   DAFTAR_KATEGORI.forEach((kat) => {
     const jumlah = kat.id === "semua" ? DATA_MENU.length : DATA_MENU.filter((m) => m.kategori === kat.id).length;
@@ -122,7 +129,7 @@ function renderMenu() {
         <span class="card-cat-label">${item.labelKategori}</span>
       </div>
       <div class="card-content">
-        <h4 onclick="bukaModalItem(${item.id})" style="cursor:pointer; font-size: 1rem; margin-bottom: 6px;">${item.nama}</h4>
+        <h4 onclick="bukaModalItem(${item.id})">${item.nama}</h4>
         <p class="card-desc">${item.deskripsi}</p>
         <div class="card-footer">
           <span class="price-text">${formatRupiah(item.harga)}</span>
@@ -288,7 +295,6 @@ function kirimKeWhatsApp() {
     return;
   }
 
-  // No Order otomatis oleh sistem
   const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
   const keteranganMeja = nomorMeja !== "" ? nomorMeja : "Take Away";
   const labelBayar = metodePembayaran === "qris" ? "QRIS / Transfer (Bukti Terlampir)" : "Tunai (Bayar di Kasir)";
@@ -352,13 +358,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  const buka DrawerAction = () => {
+    document.getElementById("categoryDrawer").classList.add("active");
+    document.getElementById("drawerOverlay").classList.add("active");
+    renderKategoriDrawer();
+  };
+
   const btnOpenDrawer = document.getElementById("btnOpenDrawer");
-  if (btnOpenDrawer) {
-    btnOpenDrawer.addEventListener("click", () => {
-      document.getElementById("categoryDrawer").classList.add("active");
-      document.getElementById("drawerOverlay").classList.add("active");
-    });
-  }
+  const btnOpenDrawerBrand = document.getElementById("btnOpenDrawerBrand");
+  if (btnOpenDrawer) btnOpenDrawer.addEventListener("click", bukaDrawerAction);
+  if (btnOpenDrawerBrand) btnOpenDrawerBrand.addEventListener("click", bukaDrawerAction);
 
   const tutupDrawer = () => {
     const drawer = document.getElementById("categoryDrawer");

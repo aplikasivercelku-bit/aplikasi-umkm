@@ -6,8 +6,9 @@ let storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || {
   qrisImg: ""
 };
 
+// SINKRONISASI OTOMATIS: Membaca data menu kustom yang diinput dari Panel Admin
 let menuCustom = JSON.parse(localStorage.getItem("umkm_menu_custom")) || [
-  { id: 1, nama: "Nasi Goreng", kategori: "makanan-berat", labelKategori: "Makanan Berat", harga: 20000, deskripsi: "ENAKKK", gambar: "https://sigmawire.net/uploads/img_67c34b12574e8.jpg" }
+  { id: 1, nama: "Nasi Goreng", kategori: "makanan-berat", labelKategori: "Makanan Berat", harga: 25000, deskripsi: "Enak & Lezat", gambar: "https://sigmawire.net/uploads/img_67c34b12574e8.jpg" }
 ];
 
 let DATA_MENU = [...menuCustom];
@@ -85,6 +86,12 @@ function renderMenu() {
   const titleEl = document.getElementById("activeCategoryTitle");
   const counterEl = document.getElementById("menuCounter");
   if (!container) return;
+
+  // Pastikan DATA_MENU selalu memperbarui data terbaru dari localStorage admin
+  const latestCustomMenu = JSON.parse(localStorage.getItem("umkm_menu_custom"));
+  if (latestCustomMenu && latestCustomMenu.length > 0) {
+    DATA_MENU = [...latestCustomMenu];
+  }
 
   const katObj = DAFTAR_KATEGORI.find((k) => k.id === kategoriAktif);
   const namaKategori = katObj ? katObj.nama : "Semua Menu";

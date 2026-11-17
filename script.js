@@ -89,6 +89,7 @@ function sinkronisasiDariUrlBarcode() {
   }
 }
 
+// Jalankan sinkronisasi segera sebelum memuat state lokal
 sinkronisasiDariUrlBarcode();
 
 storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || storeIdentity;
@@ -416,7 +417,9 @@ function kirimKeWhatsApp() {
     if (item.catatan) pesanWA += `   _Catatan: ${item.catatan}_\n`;
   });
 
-  pesanWA += `\n==============================\n*TOTAL BAYAR: ${formatRupiah(grandTotal)}*\n==============================\nTerima kasih!`;
+  pesanWA += `\n==============================\n*TOTAL BAYAR: ${formatRupiah(grandTotal)}*\n==============================\n\n`;
+  pesanWA += `Terima kasih banyak atas kunjungan dan pesanan Anda di *${currentStore.name}*! 🙏✨\n`;
+  pesanWA += `Kami sangat senang bisa melayani Anda. Semoga hari Anda menyenangkan, dan kami tunggu kehadiran serta pesanan Anda kembali ya! 😊 Kapan-kapan mampir lagi!`;
 
   window.open(`https://wa.me/${targetWa}?text=${encodeURIComponent(pesanWA)}`, "_blank");
 

@@ -1,14 +1,17 @@
 const NOMOR_WA = "6287877611218";
 
 let storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || {
-  name: "Kedai Nusantara",
-  logo: "KN",
+  name: "Caffe Santai HAHAHA",
+  logo: "CS",
   qrisImg: ""
 };
 
+// DAFTAR SELURUH MENU LENGKAP SESUAI DARI PANEL ADMIN
 let menuCustom = JSON.parse(localStorage.getItem("umkm_client_menu_custom")) || [
-  { id: 1, nama: "Nasi Goreng Spesial", kategori: "makanan-berat", labelKategori: "Makanan Berat", harga: 20000, deskripsi: "Nasi goreng komplit dengan telur dan ayam.", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Nasi+Goreng" },
-  { id: 2, nama: "Es Kopi Susu Gula Aren", kategori: "kopi", labelKategori: "Kopi", harga: 18000, deskripsi: "Kopi espresso dengan susu segar dan gula aren.", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Es+Kopi+Susu" }
+  { id: 1, nama: "Roti Bakar", kategori: "bakaran", labelKategori: "Bakaran", harga: 16000, deskripsi: "ENAK", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Roti+Bakar" },
+  { id: 2, nama: "Red Velvet", kategori: "kopi", labelKategori: "Kopi", harga: 25000, deskripsi: "Segarrr", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Red+Velvet" },
+  { id: 3, nama: "Kentang Goreng", kategori: "tambahan", labelKategori: "Tambahan / Topping", harga: 20000, deskripsi: "Gurih & Enak", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Kentang+Goreng" },
+  { id: 4, nama: "Es Alpukat", kategori: "non-kopi", labelKategori: "Non-Kopi", harga: 15000, deskripsi: "Segar", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Es+Alpukat" }
 ];
 
 let DATA_MENU = [...menuCustom];
@@ -284,7 +287,6 @@ function kirimKeWhatsApp() {
     return;
   }
 
-  // Generate No Order Otomatis
   const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
   const keteranganMeja = nomorMeja !== "" ? nomorMeja : "Take Away";
   const labelBayar = metodePembayaran === "qris" ? "QRIS / Transfer (Bukti Terlampir)" : "Tunai (Bayar di Kasir)";
@@ -311,7 +313,6 @@ function kirimKeWhatsApp() {
 
   window.open(`https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(pesanWA)}`, "_blank");
 
-  // Reset
   inputNama.value = "";
   inputMeja.value = "";
   keranjang = [];

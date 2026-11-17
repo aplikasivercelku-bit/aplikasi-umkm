@@ -6,27 +6,10 @@ let storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || {
   qrisText: "OLAN MAULANA Bank Mandiri 1630011235432"
 };
 
-/* 
-  CATATAN: Jika Admin di-deploy di Vercel terpisah, pastikan array menu di bawah ini 
-  sama dengan menu yang Anda input di Panel Admin, atau gunakan localStorage.
-*/
-let defaultMenuList = [
-  { 
-    id: 1718000001, 
-    nama: "Es Cerry", 
-    kategori: "non-kopi", 
-    labelKategori: "Non-Kopi", 
-    harga: 25000, 
-    deskripsi: "Segar & Enak", 
-    gambar: "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=400&q=80" 
-  }
-];
+// SINKRONISASI UTAMA: Membaca murni dari input link sigmawire.net di panel admin
+let menuCustom = JSON.parse(localStorage.getItem("umkm_menu_custom")) || [];
 
-let menuCustom = JSON.parse(localStorage.getItem("umkm_menu_custom")) || defaultMenuList;
-if (menuCustom.length === 0) {
-  menuCustom = defaultMenuList;
-}
-
+// Jika localStorage kosong, sediakan array kosong agar murni dikontrol dari panel admin
 let DATA_MENU = [...menuCustom];
 let keranjang = JSON.parse(localStorage.getItem("umkm_keranjang")) || [];
 let kategoriAktif = localStorage.getItem("umkm_kategori_aktif") || "semua";
@@ -74,17 +57,21 @@ function tampilkanToast(pesan) {
   setTimeout(() => { toast.classList.remove("show"); }, 2200);
 }
 
+function muatDataMenuTerbaru() {
+  const latestCustomMenu = JSON.parse(localStorage.getItem("umkm_menu_custom"));
+  if (latestCustomMenu && latestCustomMenu.length > 0) {
+    DATA_MENU = [...latestCustomMenu];
+  } else {
+    DATA_MENU = [];
+  }
+}
+
 function renderKategoriDrawer() {
   const listEl = document.getElementById("categoryList");
   if (!listEl) return;
   listEl.innerHTML = "";
 
-  const latestCustomMenu = JSON.parse(localStorage.getItem("umkm_menu_custom"));
-  if (latestCustomMenu && latestCustomMenu.length > 0) {
-    DATA_MENU = [...latestCustomMenu];
-  } else {
-    DATA_MENU = [...defaultMenuList];
-  }
+  muatDataMenuTerbaru();
 
   DAFTAR_KATEGORI.forEach((kat) => {
     const jumlah = kat.id === "semua" ? DATA_MENU.length : DATA_MENU.filter((m) => m.kategori === kat.id).length;
@@ -111,12 +98,7 @@ function renderMenu() {
   const counterEl = document.getElementById("menuCounter");
   if (!container) return;
 
-  const latestCustomMenu = JSON.parse(localStorage.getItem("umkm_menu_custom"));
-  if (latestCustomMenu && latestCustomMenu.length > 0) {
-    DATA_MENU = [...latestCustomMenu];
-  } else {
-    DATA_MENU = [...defaultMenuList];
-  }
+  muatDataMenuTerbaru();
 
   const katObj = DAFTAR_KATEGORI.find((k) => k.id === kategoriAktif);
   const namaKategori = katObj ? katObj.nama : "Semua Menu";
@@ -136,13 +118,14 @@ function renderMenu() {
   container.innerHTML = "";
 
   if (menuTersaring.length === 0) {
-    container.innerHTML = `<div class="empty-search-state" style="text-align:center; padding:30px; color:var(--text-muted);"><p>Menu "<strong>${kataKunciCari}</strong>" tidak ditemukan.</p></div>`;
+    container.innerHTML = `<div class="empty-search-state" style="text-align:center; padding:30px; color:var(--text-muted);"><p>Belum ada menu yang ditambahkan dari Panel Admin.</p></div>`;
     return;
   }
 
   menuTersaring.forEach((item) => {
     const card = document.createElement("article");
     card.className = "menu-card";
+    // Memastikan tag img mengambil URL persis dari link sigmawire.net yang diinput admin
     card.innerHTML = `
       <div class="card-img-box" onclick="bukaModalItem(${item.id})">
         <img src="${item.gambar}" alt="${item.nama}" onerror="this.src='https://placehold.co/400x300/1f1f24/f59e0b?text=${encodeURIComponent(item.nama)}'">
@@ -162,6 +145,7 @@ function renderMenu() {
 }
 
 function bukaModalItem(id) {
+  muatDataMenuTerbaru();
   itemDipilih = DATA_MENU.find((m) => m.id === id);
   if (!itemDipilih) return;
 

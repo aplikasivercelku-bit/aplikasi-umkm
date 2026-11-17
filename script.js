@@ -1,12 +1,12 @@
-const NOMOR_WA = "6287877611218";
+let NOMOR_WA = "6287877611218";
 
 let storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || {
   name: "Kedai Nusantara",
   logo: "KN",
+  wa: "6287877611218",
   qrisText: "OLAN MAULANA Bank Mandiri 1630011235432"
 };
 
-// Data menu default persis seperti pada video demonstrasi Anda (Roti Bakar, Red Velvet, Kentang Goreng, Es Alpukat)
 let defaultMenuList = [
   { 
     id: 1718000001, 
@@ -46,12 +46,57 @@ let defaultMenuList = [
   }
 ];
 
-let menuCustom = JSON.parse(localStorage.getItem("umkm_menu_custom")) || [];
-if (menuCustom.length === 0) {
-  menuCustom = defaultMenuList;
+// Tangkap data sinkronisasi dari parameter URL (?data=...) saat Barcode dari Panel Admin di-scan
+function sinkronisasiDariUrlBarcode() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const encodedData = params.get("data");
+    if (!encodedData) return;
+
+    let jsonStr = "";
+    if (typeof LZString !== "undefined") {
+      jsonStr = LZString.decompressFromEncodedURIComponent(encodedData);
+    }
+    if (!jsonStr) {
+      jsonStr = decodeURIComponent(escape(atob(encodedData)));
+    }
+
+    const parsed = JSON.parse(jsonStr);
+    if (parsed && parsed.s) {
+      storeIdentity = {
+        name: parsed.s.n || storeIdentity.name,
+        logo: parsed.s.l || storeIdentity.logo,
+        wa: parsed.s.w || storeIdentity.wa || "6287877611218",
+        qrisText: parsed.s.q !== undefined ? parsed.s.q : storeIdentity.qrisText
+      };
+      localStorage.setItem("umkm_store_identity", JSON.stringify(storeIdentity));
+    }
+
+    if (parsed && Array.isArray(parsed.m)) {
+      const syncedMenus = parsed.m.map(item => ({
+        id: item.i || Date.now() + Math.random(),
+        nama: item.n,
+        kategori: item.k,
+        labelKategori: item.lk,
+        harga: Number(item.h),
+        deskripsi: item.d || "",
+        gambar: item.g || `https://placehold.co/400x300/1f1f24/f59e0b?text=${encodeURIComponent(item.n)}`
+      }));
+      localStorage.setItem("umkm_menu_custom", JSON.stringify(syncedMenus));
+    }
+  } catch (err) {
+    console.error("Gagal membaca data sinkronisasi dari Barcode:", err);
+  }
 }
 
-let DATA_MENU = [...menuCustom];
+sinkronisasiDariUrlBarcode();
+
+storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || storeIdentity;
+NOMOR_WA = storeIdentity.wa || "6287877611218";
+
+let savedMenuCustom = JSON.parse(localStorage.getItem("umkm_menu_custom"));
+let DATA_MENU = Array.isArray(savedMenuCustom) ? savedMenuCustom : [...defaultMenuList];
+
 let keranjang = JSON.parse(localStorage.getItem("umkm_keranjang")) || [];
 let kategoriAktif = localStorage.getItem("umkm_kategori_aktif") || "semua";
 let itemDipilih = null;
@@ -74,6 +119,7 @@ const DAFTAR_KATEGORI = [
 
 function applyClientIdentity() {
   const currentStore = JSON.parse(localStorage.getItem("umkm_store_identity")) || storeIdentity;
+  NOMOR_WA = currentStore.wa || "6287877611218";
   if (currentStore.name) {
     document.title = `${currentStore.name} - Menu Digital`;
     document.querySelectorAll("#navBrandTitle").forEach(el => el.textContent = currentStore.name);
@@ -100,7 +146,7 @@ function tampilkanToast(pesan) {
 
 function muatDataMenuTerbaru() {
   const latestCustomMenu = JSON.parse(localStorage.getItem("umkm_menu_custom"));
-  if (latestCustomMenu && latestCustomMenu.length > 0) {
+  if (Array.isArray(latestCustomMenu)) {
     DATA_MENU = [...latestCustomMenu];
   } else {
     DATA_MENU = [...defaultMenuList];
@@ -126,7 +172,10 @@ function renderKategoriDrawer() {
       simpanStateLocal();
       renderKategoriDrawer();
       renderMenu();
-      tutupDrawer();
+      const drawer = document.getElementById("categoryDrawer");
+      const overlay = document.getElementById("drawerOverlay");
+      if (drawer) drawer.classList.remove("active");
+      if (overlay) overlay.classList.remove("active");
     });
     li.appendChild(btn);
     listEl.appendChild(li);
@@ -159,7 +208,10 @@ function renderMenu() {
   container.innerHTML = "";
 
   if (menuTersaring.length === 0) {
-    container.innerHTML = `<div class="empty-search-state" style="text-align:center; padding:30px; color:var(--text-muted);"><p>Menu "<strong>${kataKunciCari}</strong>" tidak ditemukan.</p></div>`;
+    const emptyMsg = kataKunciCari !== ""
+      ? `Menu "<strong>${kataKunciCari}</strong>" tidak ditemukan.`
+      : "Belum ada menu yang tersedia di kategori ini.";
+    container.innerHTML = `<div class="empty-search-state" style="text-align:center; padding:30px; color:var(--text-muted);"><p>${emptyMsg}</p></div>`;
     return;
   }
 
@@ -339,11 +391,14 @@ function kirimKeWhatsApp() {
     return;
   }
 
+  const currentStore = JSON.parse(localStorage.getItem("umkm_store_identity")) || storeIdentity;
+  const targetWa = currentStore.wa || NOMOR_WA;
+
   const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
   const keteranganMeja = nomorMeja !== "" ? nomorMeja : "Take Away";
   const labelBayar = metodePembayaran === "qris" ? "QRIS / Transfer (Bukti Terlampir)" : "Tunai (Bayar di Kasir)";
 
-  let pesanWA = `*HALO, SAYA MAU PESAN MENU*\n==============================\n`;
+  let pesanWA = `*HALO ${currentStore.name.toUpperCase()}, SAYA MAU PESAN MENU*\n==============================\n`;
   pesanWA += `*No. Order:* ${orderId}\n`;
   pesanWA += `*Nama Pemesan:* ${namaPemesan}\n`;
   pesanWA += `*No. Meja:* ${keteranganMeja}\n`;
@@ -363,7 +418,7 @@ function kirimKeWhatsApp() {
 
   pesanWA += `\n==============================\n*TOTAL BAYAR: ${formatRupiah(grandTotal)}*\n==============================\nTerima kasih!`;
 
-  window.open(`https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(pesanWA)}`, "_blank");
+  window.open(`https://wa.me/${targetWa}?text=${encodeURIComponent(pesanWA)}`, "_blank");
 
   if (inputNama) inputNama.value = "";
   if (inputMeja) inputMeja.value = "";
@@ -381,6 +436,12 @@ document.addEventListener("DOMContentLoaded", () => {
   renderKategoriDrawer();
   renderMenu();
   updateTampilanKeranjang();
+
+  window.addEventListener("storage", () => {
+    applyClientIdentity();
+    renderKategoriDrawer();
+    renderMenu();
+  });
 
   const searchInput = document.getElementById("searchMenuInput");
   const btnClearSearch = document.getElementById("btnClearSearch");

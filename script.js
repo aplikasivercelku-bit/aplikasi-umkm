@@ -394,7 +394,7 @@ function kirimKeWhatsApp() {
   
   // Menyesuaikan teks metode pembayaran dan status sesuai permintaan
   let labelBayar = "Tunai (Bayar di Kasir)";
-  let statusBayar = "Pembayaran selesai (Cek segera Ya)";
+  let statusBayar = "Selesai";
   
   if (metodePembayaran === "qris") {
     labelBayar = "QRIS / Transfer (Kirim Bukti Pembayaran segera ya)";

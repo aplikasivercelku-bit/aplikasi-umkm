@@ -6,9 +6,26 @@ let storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || {
   qrisText: "OLAN MAULANA Bank Mandiri 1630011235432"
 };
 
-let menuCustom = JSON.parse(localStorage.getItem("umkm_menu_custom")) || [
-  { id: 1, nama: "Es Cerry", kategori: "non-kopi", labelKategori: "Non-Kopi", harga: 25000, deskripsi: "Segar & Enak", gambar: "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=400&q=80" }
+/* 
+  CATATAN: Jika Admin di-deploy di Vercel terpisah, pastikan array menu di bawah ini 
+  sama dengan menu yang Anda input di Panel Admin, atau gunakan localStorage.
+*/
+let defaultMenuList = [
+  { 
+    id: 1718000001, 
+    nama: "Es Cerry", 
+    kategori: "non-kopi", 
+    labelKategori: "Non-Kopi", 
+    harga: 25000, 
+    deskripsi: "Segar & Enak", 
+    gambar: "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=400&q=80" 
+  }
 ];
+
+let menuCustom = JSON.parse(localStorage.getItem("umkm_menu_custom")) || defaultMenuList;
+if (menuCustom.length === 0) {
+  menuCustom = defaultMenuList;
+}
 
 let DATA_MENU = [...menuCustom];
 let keranjang = JSON.parse(localStorage.getItem("umkm_keranjang")) || [];
@@ -62,10 +79,11 @@ function renderKategoriDrawer() {
   if (!listEl) return;
   listEl.innerHTML = "";
 
-  // Sinkronisasi data terbaru
   const latestCustomMenu = JSON.parse(localStorage.getItem("umkm_menu_custom"));
   if (latestCustomMenu && latestCustomMenu.length > 0) {
     DATA_MENU = [...latestCustomMenu];
+  } else {
+    DATA_MENU = [...defaultMenuList];
   }
 
   DAFTAR_KATEGORI.forEach((kat) => {
@@ -96,6 +114,8 @@ function renderMenu() {
   const latestCustomMenu = JSON.parse(localStorage.getItem("umkm_menu_custom"));
   if (latestCustomMenu && latestCustomMenu.length > 0) {
     DATA_MENU = [...latestCustomMenu];
+  } else {
+    DATA_MENU = [...defaultMenuList];
   }
 
   const katObj = DAFTAR_KATEGORI.find((k) => k.id === kategoriAktif);
@@ -358,7 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  const buka DrawerAction = () => {
+  const bukaDrawerAction = () => {
     document.getElementById("categoryDrawer").classList.add("active");
     document.getElementById("drawerOverlay").classList.add("active");
     renderKategoriDrawer();

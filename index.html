@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu Digital & Pemesanan</title>
+  <meta property="og:title" content="Menu Digital & Pemesanan">
+  <meta property="og:description" content="Pesan cepat tanpa antre langsung dari menu digital.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- TAMPILAN UTAMA CLIENT (Langsung Terbuka Tanpa Scan/Login Lagi) -->
+  <div id="mainAppContent">
+    <header class="navbar">
+      <div class="nav-brand">
+        <div class="brand-logo" id="navBrandLogo">KN</div>
+        <div>
+          <h1 id="navBrandTitle">Kedai Nusantara</h1>
+          <span class="brand-sub" id="navBrandSub">Pesan Cepat Tanpa Antre</span>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <button class="icon-btn cart-btn" id="btnOpenCart" aria-label="Buka Keranjang">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+          <span class="badge" id="cartCountBadge">0</span>
+        </button>
+
+        <button class="icon-btn menu-btn" id="btnOpenDrawer" aria-label="Daftar Kategori">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero-banner">
+        <span class="pill-tag">BUKA SETIAP HARI</span>
+        <h2>Pilih Menu Favoritmu</h2>
+        <p>Klik ikon <strong>garis 3</strong> di pojok kanan atas untuk berpindah kategori menu dengan cepat.</p>
+      </section>
+
+      <section class="search-section">
+        <div class="search-box">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="searchMenuInput" placeholder="Cari nama menu... (contoh: kopi, nasi goreng, dimsum)" autocomplete="off">
+          <button type="button" id="btnClearSearch" class="clear-search-btn" style="display: none;" aria-label="Hapus pencarian">&times;</button>
+        </div>
+      </section>
+
+      <div class="section-header">
+        <h3 id="activeCategoryTitle">Semua Menu</h3>
+        <span id="menuCounter" class="menu-counter">0 Menu</span>
+      </div>
+
+      <section class="menu-grid" id="menuContainer"></section>
+    </main>
+
+    <div class="floating-cart" id="floatingCart" style="display: none;">
+      <div class="floating-info">
+        <span id="floatingQty">0 Item</span>
+        <strong id="floatingTotal">Rp 0</strong>
+      </div>
+      <button class="btn-primary" id="btnFloatingOpenCart">Lihat Keranjang &rarr;</button>
+    </div>
+
+    <div class="overlay" id="drawerOverlay"></div>
+    <aside class="drawer" id="categoryDrawer">
+      <div class="drawer-header">
+        <div>
+          <span class="pill-tag">KATEGORI MENU</span>
+          <h3>Daftar Menu</h3>
+        </div>
+        <button class="close-btn" id="btnCloseDrawer">&times;</button>
+      </div>
+      <ul class="category-list" id="categoryList"></ul>
+    </aside>
+
+    <div class="modal-backdrop" id="itemModal">
+      <div class="modal-card">
+        <button class="modal-close" id="btnCloseItemModal">&times;</button>
+        <div class="modal-img-wrap">
+          <img id="modalItemImg" src="" alt="Foto Menu">
+          <span class="modal-cat-badge" id="modalItemCat">KATEGORI</span>
+        </div>
+        <div class="modal-body">
+          <h2 id="modalItemName">Nama Menu</h2>
+          <p class="modal-desc" id="modalItemDesc">Deskripsi singkat menu.</p>
+          <div class="form-group">
+            <label for="inputCatatan">✏️ Catatan Khusus <span class="opt-label">OPSIONAL</span></label>
+            <input type="text" id="inputCatatan" placeholder="Contoh: Pedas sedang, es sedikit...">
+          </div>
+          <div class="qty-box">
+            <div>
+              <strong>Jumlah Porsi</strong>
+              <small>Pesan untuk sendiri atau ramean</small>
+            </div>
+            <div class="qty-controls">
+              <button type="button" id="btnMinusQty">−</button>
+              <span id="modalQtyValue">1</span>
+              <button type="button" id="btnPlusQty">+</button>
+            </div>
+          </div>
+          <div class="price-summary-box">
+            <div class="price-row">
+              <span>Harga satuan</span>
+              <span id="modalUnitPrice">Rp 0</span>
+            </div>
+            <div class="price-row total">
+              <span>TOTAL HARGA</span>
+              <strong id="modalTotalPrice">Rp 0</strong>
+            </div>
+          </div>
+          <button class="btn-primary btn-full" id="btnAddToCart">Tambahkan ke Keranjang</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="cartModal">
+      <div class="modal-card cart-modal-card">
+        <div class="cart-header">
+          <div>
+            <span class="pill-tag">RINCIAN PESANAN</span>
+            <h2>Keranjang Anda</h2>
+          </div>
+          <button class="close-btn" id="btnCloseCartModal">&times;</button>
+        </div>
+        <div class="cart-items-container" id="cartItemsList"></div>
+        <div class="checkout-form" id="checkoutFormSection">
+          <div class="checkout-title">
+            <h3>Nama Pemesan</h3>
+            <p>Isi nama agar pesananmu mudah kami kenali di WhatsApp.</p>
+          </div>
+          <div class="form-group">
+            <label for="customerName">Nama Lengkap <span class="req-label">*WAJIB</span></label>
+            <input type="text" id="customerName" placeholder="Masukkan nama lengkap kamu...">
+          </div>
+          <div class="form-group">
+            <label for="tableNumber">Nomor Meja <span class="opt-label">OPSIONAL</span></label>
+            <input type="text" id="tableNumber" placeholder="Contoh: 04 (Kosongkan jika Take Away)">
+          </div>
+          <div class="cart-grand-total">
+            <span>Total Pembayaran</span>
+            <strong id="cartGrandTotal">Rp 0</strong>
+          </div>
+          <button class="btn-wa btn-full" id="btnSendWhatsApp">Lanjut ke WhatsApp &rarr;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toastNotif">Pesanan masuk keranjang!</div>
+  <script src="script.js"></script>
+</body>
+</html>

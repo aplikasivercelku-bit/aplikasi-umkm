@@ -1,0 +1,354 @@
+const NOMOR_WA = "6287877611218";
+
+// Data menu bawaan default jika belum ada data kustom dari admin
+let menuCustom = JSON.parse(localStorage.getItem("umkm_client_menu_custom")) || [
+  { id: 1, nama: "Nasi Goreng Spesial", kategori: "makanan-berat", labelKategori: "Makanan Berat", harga: 20000, deskripsi: "Nasi goreng komplit dengan telur dan ayam.", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Nasi+Goreng" },
+  { id: 2, nama: "Es Kopi Susu Gula Aren", kategori: "kopi", labelKategori: "Kopi", harga: 18000, deskripsi: "Kopi espresso dengan susu segar dan manisnya gula aren.", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Es+Kopi+Susu" }
+];
+
+let DATA_MENU = [...menuCustom];
+let keranjang = JSON.parse(localStorage.getItem("umkm_keranjang")) || [];
+let kategoriAktif = localStorage.getItem("umkm_kategori_aktif") || "semua";
+let itemDipilih = null;
+let qtyModal = 1;
+let kataKunciCari = "";
+
+const DAFTAR_KATEGORI = [
+  { id: "semua", nama: "Semua Menu" },
+  { id: "kopi", nama: "Kopi" },
+  { id: "non-kopi", nama: "Non-Kopi" },
+  { id: "makanan-berat", nama: "Makanan Berat" },
+  { id: "camilan", nama: "Camilan" },
+  { id: "bakaran", nama: "Bakaran" },
+  { id: "kue-dessert", nama: "Kue & Dessert" },
+  { id: "menu-paket", nama: "Menu Paket" },
+  { id: "tambahan", nama: "Tambahan / Topping" }
+];
+
+function formatRupiah(angka) {
+  return "Rp " + angka.toLocaleString("id-ID");
+}
+
+function simpanStateLocal() {
+  localStorage.setItem("umkm_keranjang", JSON.stringify(keranjang));
+  localStorage.setItem("umkm_kategori_aktif", kategoriAktif);
+}
+
+function tampilkanToast(pesan) {
+  const toast = document.getElementById("toastNotif");
+  if (!toast) return;
+  toast.textContent = pesan;
+  toast.classList.add("show");
+  setTimeout(() => { toast.classList.remove("show"); }, 2200);
+}
+
+function renderKategoriDrawer() {
+  const listEl = document.getElementById("categoryList");
+  if (!listEl) return;
+  listEl.innerHTML = "";
+
+  DAFTAR_KATEGORI.forEach((kat) => {
+    const jumlah = kat.id === "semua" ? DATA_MENU.length : DATA_MENU.filter((m) => m.kategori === kat.id).length;
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    if (kat.id === kategoriAktif) btn.classList.add("active");
+
+    btn.innerHTML = `<span>${kat.nama}</span><span class="cat-count">${jumlah}</span>`;
+    btn.addEventListener("click", () => {
+      kategoriAktif = kat.id;
+      simpanStateLocal();
+      renderKategoriDrawer();
+      renderMenu();
+      tutupDrawer();
+    });
+    li.appendChild(btn);
+    listEl.appendChild(li);
+  });
+}
+
+function renderMenu() {
+  const container = document.getElementById("menuContainer");
+  const titleEl = document.getElementById("activeCategoryTitle");
+  const counterEl = document.getElementById("menuCounter");
+  if (!container) return;
+
+  const katObj = DAFTAR_KATEGORI.find((k) => k.id === kategoriAktif);
+  const namaKategori = katObj ? katObj.nama : "Semua Menu";
+
+  let menuTersaring = kategoriAktif === "semua" ? DATA_MENU : DATA_MENU.filter((item) => item.kategori === kategoriAktif);
+
+  if (kataKunciCari !== "") {
+    const keyword = kataKunciCari.toLowerCase();
+    menuTersaring = menuTersaring.filter((item) =>
+      item.nama.toLowerCase().includes(keyword) ||
+      item.deskripsi.toLowerCase().includes(keyword) ||
+      item.labelKategori.toLowerCase().includes(keyword)
+    );
+    titleEl.textContent = `Hasil Pencarian: "${kataKunciCari}"`;
+  } else {
+    titleEl.textContent = namaKategori;
+  }
+
+  counterEl.textContent = `${menuTersaring.length} Menu`;
+  container.innerHTML = "";
+
+  if (menuTersaring.length === 0) {
+    container.innerHTML = `
+      <div class="empty-search-state">
+        <p style="font-size: 1rem; margin-bottom: 6px; color: var(--text-main);">Menu "<strong>${kataKunciCari}</strong>" tidak ditemukan</p>
+        <small>Coba kata kunci lain atau pilih kategori "Semua Menu".</small>
+      </div>
+    `;
+    return;
+  }
+
+  menuTersaring.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = "menu-card";
+    card.innerHTML = `
+      <div class="card-img-box" onclick="bukaModalItem(${item.id})">
+        <img src="${item.gambar}" alt="${item.nama}" onerror="this.src='https://placehold.co/400x300/1f1f24/f59e0b?text=${encodeURIComponent(item.nama)}'">
+        <span class="card-cat-label">${item.labelKategori}</span>
+      </div>
+      <div class="card-content">
+        <h4 onclick="bukaModalItem(${item.id})" style="cursor:pointer;">${item.nama}</h4>
+        <p class="card-desc">${item.deskripsi}</p>
+        <div class="card-footer">
+          <span class="price-text">${formatRupiah(item.harga)}</span>
+          <button class="btn-pesan" onclick="bukaModalItem(${item.id})">Pesan +</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function bukaModalItem(id) {
+  itemDipilih = DATA_MENU.find((m) => m.id === id);
+  if (!itemDipilih) return;
+
+  qtyModal = 1;
+  document.getElementById("modalItemImg").src = itemDipilih.gambar;
+  document.getElementById("modalItemCat").textContent = itemDipilih.labelKategori;
+  document.getElementById("modalItemName").textContent = itemDipilih.nama;
+  document.getElementById("modalItemDesc").textContent = itemDipilih.deskripsi;
+  document.getElementById("inputCatatan").value = "";
+  document.getElementById("modalQtyValue").textContent = qtyModal;
+  document.getElementById("modalUnitPrice").textContent = formatRupiah(itemDipilih.harga);
+  document.getElementById("modalTotalPrice").textContent = formatRupiah(itemDipilih.harga * qtyModal);
+
+  document.getElementById("itemModal").classList.add("active");
+}
+
+function tutupModalItem() {
+  document.getElementById("itemModal").classList.remove("active");
+}
+
+function updateHargaModal() {
+  document.getElementById("modalQtyValue").textContent = qtyModal;
+  document.getElementById("modalTotalPrice").textContent = formatRupiah(itemDipilih.harga * qtyModal);
+}
+
+function tambahKeKeranjang() {
+  if (!itemDipilih) return;
+  const catatan = document.getElementById("inputCatatan").value.trim();
+
+  const indexSama = keranjang.findIndex((k) => k.id === itemDipilih.id && k.catatan.toLowerCase() === catatan.toLowerCase());
+  if (indexSama !== -1) {
+    keranjang[indexSama].qty += qtyModal;
+  } else {
+    keranjang.push({
+      uid: Date.now(),
+      id: itemDipilih.id,
+      nama: itemDipilih.nama,
+      harga: itemDipilih.harga,
+      qty: qtyModal,
+      catatan: catatan
+    });
+  }
+
+  simpanStateLocal();
+  updateTampilanKeranjang();
+  tutupModalItem();
+  tampilkanToast(`✓ ${itemDipilih.nama} masuk keranjang!`);
+}
+
+function updateTampilanKeranjang() {
+  const totalQty = keranjang.reduce((acc, item) => acc + item.qty, 0);
+  const totalHarga = keranjang.reduce((acc, item) => acc + item.harga * item.qty, 0);
+
+  const badge = document.getElementById("cartCountBadge");
+  if (badge) badge.textContent = totalQty;
+
+  const floatingBar = document.getElementById("floatingCart");
+  if (floatingBar) {
+    if (totalQty > 0) {
+      floatingBar.style.display = "flex";
+      document.getElementById("floatingQty").textContent = `${totalQty} Item di Keranjang`;
+      document.getElementById("floatingTotal").textContent = formatRupiah(totalHarga);
+    } else {
+      floatingBar.style.display = "none";
+    }
+  }
+
+  const listContainer = document.getElementById("cartItemsList");
+  const checkoutSection = document.getElementById("checkoutFormSection");
+  if (!listContainer) return;
+
+  if (keranjang.length === 0) {
+    listContainer.innerHTML = `<div class="empty-cart">Keranjang masih kosong.<br>Silakan pilih menu terlebih dahulu.</div>`;
+    if (checkoutSection) checkoutSection.style.display = "none";
+    return;
+  }
+
+  if (checkoutSection) checkoutSection.style.display = "block";
+  listContainer.innerHTML = "";
+
+  keranjang.forEach((item, idx) => {
+    const div = document.createElement("div");
+    div.className = "cart-item";
+    div.innerHTML = `
+      <div class="cart-item-info">
+        <h4>${item.nama}</h4>
+        ${item.catatan ? `<span class="cart-item-note">Catatan: ${item.catatan}</span>` : ""}
+        <span class="cart-item-price">${formatRupiah(item.harga)} x ${item.qty} = <strong>${formatRupiah(item.harga * item.qty)}</strong></span>
+      </div>
+      <div class="cart-item-actions">
+        <button class="btn-mini" onclick="ubahQtyKeranjang(${idx}, -1)">−</button>
+        <span>${item.qty}</span>
+        <button class="btn-mini" onclick="ubahQtyKeranjang(${idx}, 1)">+</button>
+        <button class="btn-del" onclick="hapusItemKeranjang(${idx})">Hapus</button>
+      </div>
+    `;
+    listContainer.appendChild(div);
+  });
+
+  const grandTotalEl = document.getElementById("cartGrandTotal");
+  if (grandTotalEl) grandTotalEl.textContent = formatRupiah(totalHarga);
+}
+
+function ubahQtyKeranjang(index, delta) {
+  keranjang[index].qty += delta;
+  if (keranjang[index].qty <= 0) keranjang.splice(index, 1);
+  simpanStateLocal();
+  updateTampilanKeranjang();
+}
+
+function hapusItemKeranjang(index) {
+  keranjang.splice(index, 1);
+  simpanStateLocal();
+  updateTampilanKeranjang();
+}
+
+function kirimKeWhatsApp() {
+  const inputNama = document.getElementById("customerName");
+  const inputMeja = document.getElementById("tableNumber");
+  const namaPemesan = inputNama.value.trim();
+  const nomorMeja = inputMeja.value.trim();
+
+  if (!namaPemesan) {
+    alert("Mohon isi Nama Lengkap pemesan terlebih dahulu.");
+    inputNama.focus();
+    return;
+  }
+
+  if (keranjang.length === 0) {
+    alert("Keranjang pesanan masih kosong.");
+    return;
+  }
+
+  const keteranganMeja = nomorMeja !== "" ? nomorMeja : "Take Away";
+
+  let pesanWA = `*HALO, SAYA MAU PESAN MENU*\n==============================\n`;
+  pesanWA += `*Nama Pemesan:* ${namaPemesan}\n*No. Meja:* ${keteranganMeja}\n==============================\n\n*DAFTAR PESANAN:*\n`;
+
+  let grandTotal = 0;
+  keranjang.forEach((item, i) => {
+    const subtotal = item.harga * item.qty;
+    grandTotal += subtotal;
+    pesanWA += `${i + 1}. *${item.nama}* (${item.qty}x) - ${formatRupiah(subtotal)}\n`;
+    if (item.catatan) pesanWA += `   _Catatan: ${item.catatan}_\n`;
+  });
+
+  pesanWA += `\n==============================\n*TOTAL BAYAR: ${formatRupiah(grandTotal)}*\n==============================\nTerima kasih!`;
+
+  window.open(`https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(pesanWA)}`, "_blank");
+
+  inputNama.value = "";
+  inputMeja.value = "";
+  keranjang = [];
+  simpanStateLocal();
+  updateTampilanKeranjang();
+  document.getElementById("cartModal").classList.remove("active");
+  tampilkanToast("✓ Pesanan diteruskan ke WA & keranjang dikosongkan!");
+}
+
+function bukaDrawer() {
+  document.getElementById("categoryDrawer").classList.add("active");
+  document.getElementById("drawerOverlay").classList.add("active");
+}
+
+function tutupDrawer() {
+  document.getElementById("categoryDrawer").classList.remove("active");
+  document.getElementById("drawerOverlay").classList.remove("active");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  DATA_MENU = [...menuCustom];
+  renderKategoriDrawer();
+  renderMenu();
+  updateTampilanKeranjang();
+
+  const searchInput = document.getElementById("searchMenuInput");
+  const btnClearSearch = document.getElementById("btnClearSearch");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      kataKunciCari = e.target.value.trim();
+      btnClearSearch.style.display = kataKunciCari !== "" ? "flex" : "none";
+      renderMenu();
+    });
+  }
+
+  if (btnClearSearch) {
+    btnClearSearch.addEventListener("click", () => {
+      kataKunciCari = "";
+      searchInput.value = "";
+      btnClearSearch.style.display = "none";
+      renderMenu();
+      searchInput.focus();
+    });
+  }
+
+  document.getElementById("btnOpenDrawer").addEventListener("click", bukaDrawer);
+  document.getElementById("btnCloseDrawer").addEventListener("click", tutupDrawer);
+  document.getElementById("drawerOverlay").addEventListener("click", tutupDrawer);
+
+  document.getElementById("btnCloseItemModal").addEventListener("click", tutupModalItem);
+  document.getElementById("itemModal").addEventListener("click", (e) => {
+    if (e.target.id === "itemModal") tutupModalItem();
+  });
+
+  document.getElementById("btnMinusQty").addEventListener("click", () => {
+    if (qtyModal > 1) { qtyModal--; updateHargaModal(); }
+  });
+  document.getElementById("btnPlusQty").addEventListener("click", () => {
+    qtyModal++; updateHargaModal();
+  });
+  document.getElementById("btnAddToCart").addEventListener("click", tambahKeKeranjang);
+
+  document.getElementById("btnOpenCart").addEventListener("click", () => {
+    document.getElementById("cartModal").classList.add("active");
+  });
+  document.getElementById("btnFloatingOpenCart").addEventListener("click", () => {
+    document.getElementById("cartModal").classList.add("active");
+  });
+  document.getElementById("btnCloseCartModal").addEventListener("click", () => {
+    document.getElementById("cartModal").classList.remove("active");
+  });
+  document.getElementById("cartModal").addEventListener("click", (e) => {
+    if (e.target.id === "cartModal") document.getElementById("cartModal").classList.remove("active");
+  });
+
+  document.getElementById("btnSendWhatsApp").addEventListener("click", kirimKeWhatsApp);
+});

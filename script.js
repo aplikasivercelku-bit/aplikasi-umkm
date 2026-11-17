@@ -1,112 +1,17 @@
 const NOMOR_WA = "6287877611218";
 
-let storeIdentity = JSON.parse(localStorage.getItem("umkm_client_store_identity")) || {
-  name: "",
-  sub: "Pesan Cepat Tanpa Antre",
-  logo: ""
-};
+// Data menu bawaan default jika belum ada data kustom dari admin
+let menuCustom = JSON.parse(localStorage.getItem("umkm_client_menu_custom")) || [
+  { id: 1, nama: "Nasi Goreng Spesial", kategori: "makanan-berat", labelKategori: "Makanan Berat", harga: 20000, deskripsi: "Nasi goreng komplit dengan telur dan ayam.", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Nasi+Goreng" },
+  { id: 2, nama: "Es Kopi Susu Gula Aren", kategori: "kopi", labelKategori: "Kopi", harga: 18000, deskripsi: "Kopi espresso dengan susu segar dan manisnya gula aren.", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Es+Kopi+Susu" }
+];
 
-let menuCustom = JSON.parse(localStorage.getItem("umkm_client_menu_custom")) || [];
 let DATA_MENU = [...menuCustom];
-
 let keranjang = JSON.parse(localStorage.getItem("umkm_keranjang")) || [];
 let kategoriAktif = localStorage.getItem("umkm_kategori_aktif") || "semua";
 let itemDipilih = null;
 let qtyModal = 1;
 let kataKunciCari = "";
-let html5QrCodeScanner = null;
-
-function applyStoreIdentity() {
-  const isLogged = localStorage.getItem("umkm_client_logged") === "true";
-  
-  if (!isLogged || !storeIdentity.name) {
-    document.title = "Menu Digital & Pemesanan";
-    document.querySelectorAll("#loginLogoText").forEach(el => {
-      el.textContent = "QR";
-      el.style.background = "var(--bg-elevated)";
-      el.style.color = "var(--text-muted)";
-    });
-    document.querySelectorAll("#loginTitleText").forEach(el => el.textContent = "Silakan Pindai Barcode");
-    return;
-  }
-
-  document.title = `${storeIdentity.name} - Menu Digital & Pemesanan`;
-  document.querySelectorAll("#navBrandTitle").forEach(el => el.textContent = storeIdentity.name);
-  document.querySelectorAll("#navBrandSub").forEach(el => el.textContent = storeIdentity.sub);
-  document.querySelectorAll("#navBrandLogo").forEach(el => {
-    el.textContent = storeIdentity.logo;
-    el.style.background = "";
-    el.style.color = "";
-  });
-  document.querySelectorAll("#loginLogoText").forEach(el => {
-    el.textContent = storeIdentity.logo;
-    el.style.background = "";
-    el.style.color = "";
-  });
-  document.querySelectorAll("#loginTitleText").forEach(el => el.textContent = storeIdentity.name);
-}
-
-function formatRupiah(angka) {
-  return "Rp " + angka.toLocaleString("id-ID");
-}
-
-function simpanStateLocal() {
-  localStorage.setItem("umkm_keranjang", JSON.stringify(keranjang));
-  localStorage.setItem("umkm_kategori_aktif", kategoriAktif);
-  localStorage.setItem("umkm_client_menu_custom", JSON.stringify(menuCustom));
-  localStorage.setItem("umkm_client_store_identity", JSON.stringify(storeIdentity));
-}
-
-function tampilkanToast(pesan) {
-  const toast = document.getElementById("toastNotif");
-  if (!toast) return;
-  toast.textContent = pesan;
-  toast.classList.add("show");
-  setTimeout(() => { toast.classList.remove("show"); }, 2200);
-}
-
-function prosesDataImporAdmin(parsedData) {
-  let daftarMenuBaru = [];
-
-  if (parsedData && typeof parsedData === "object" && !Array.isArray(parsedData)) {
-    if (parsedData.store) {
-      storeIdentity = {
-        name: parsedData.store.name || "Kedai Nusantara",
-        sub: parsedData.store.sub || "Pesan Cepat Tanpa Antre",
-        logo: parsedData.store.logo || "KN"
-      };
-    }
-    if (Array.isArray(parsedData.menus)) {
-      daftarMenuBaru = parsedData.menus.map(m => ({
-        id: m.id || Date.now() + Math.random(),
-        nama: m.n || m.nama || "Menu",
-        kategori: m.k || m.kategori || "kopi",
-        labelKategori: m.lk || m.labelKategori || "Menu",
-        harga: m.h || m.harga || 0,
-        deskripsi: m.d || m.deskripsi || "",
-        gambar: m.g || m.gambar || m.img || `https://placehold.co/400x300/1f1f24/f59e0b?text=${encodeURIComponent(m.n || m.nama || "Menu")}`
-      }));
-    }
-  } else if (Array.isArray(parsedData)) {
-    daftarMenuBaru = parsedData.map(m => ({
-      id: m.id || Date.now() + Math.random(),
-      nama: m.n || m.nama || "Menu",
-      kategori: m.k || m.kategori || "kopi",
-      labelKategori: m.lk || m.labelKategori || "Menu",
-      harga: m.h || m.harga || 0,
-      deskripsi: m.d || m.deskripsi || "",
-      gambar: m.g || m.gambar || m.img || `https://placehold.co/400x300/1f1f24/f59e0b?text=${encodeURIComponent(m.n || m.nama || "Menu")}`
-    }));
-  } else {
-    return false;
-  }
-
-  menuCustom = daftarMenuBaru;
-  DATA_MENU = [...menuCustom];
-  simpanStateLocal();
-  applyStoreIdentity();
-  return true;
-}
 
 const DAFTAR_KATEGORI = [
   { id: "semua", nama: "Semua Menu" },
@@ -119,6 +24,23 @@ const DAFTAR_KATEGORI = [
   { id: "menu-paket", nama: "Menu Paket" },
   { id: "tambahan", nama: "Tambahan / Topping" }
 ];
+
+function formatRupiah(angka) {
+  return "Rp " + angka.toLocaleString("id-ID");
+}
+
+function simpanStateLocal() {
+  localStorage.setItem("umkm_keranjang", JSON.stringify(keranjang));
+  localStorage.setItem("umkm_kategori_aktif", kategoriAktif);
+}
+
+function tampilkanToast(pesan) {
+  const toast = document.getElementById("toastNotif");
+  if (!toast) return;
+  toast.textContent = pesan;
+  toast.classList.add("show");
+  setTimeout(() => { toast.classList.remove("show"); }, 2200);
+}
 
 function renderKategoriDrawer() {
   const listEl = document.getElementById("categoryList");
@@ -337,7 +259,7 @@ function kirimKeWhatsApp() {
 
   const keteranganMeja = nomorMeja !== "" ? nomorMeja : "Take Away";
 
-  let pesanWA = `*HALO, SAYA MAU PESAN MENU (${storeIdentity.name.toUpperCase()})*\n==============================\n`;
+  let pesanWA = `*HALO, SAYA MAU PESAN MENU*\n==============================\n`;
   pesanWA += `*Nama Pemesan:* ${namaPemesan}\n*No. Meja:* ${keteranganMeja}\n==============================\n\n*DAFTAR PESANAN:*\n`;
 
   let grandTotal = 0;
@@ -354,9 +276,6 @@ function kirimKeWhatsApp() {
 
   inputNama.value = "";
   inputMeja.value = "";
-  localStorage.removeItem("umkm_nama_pemesan");
-  localStorage.removeItem("umkm_no_meja");
-
   keranjang = [];
   simpanStateLocal();
   updateTampilanKeranjang();
@@ -375,113 +294,6 @@ function tutupDrawer() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  applyStoreIdentity();
-
-  const loginScreen = document.getElementById("loginScreen");
-  const mainAppContent = document.getElementById("mainAppContent");
-
-  const isClientLogged = localStorage.getItem("umkm_client_logged");
-
-  if (isClientLogged === "true") {
-    loginScreen.style.display = "none";
-    mainAppContent.style.display = "block";
-    inisisasiAplikasiUtama();
-  } else {
-    loginScreen.style.display = "flex";
-    mainAppContent.style.display = "none";
-  }
-
-  let cameraActive = false;
-  document.getElementById("btnToggleCameraLogin").addEventListener("click", () => {
-    const readerDiv = document.getElementById("reader");
-    if (!cameraActive) {
-      readerDiv.style.display = "block";
-      cameraActive = true;
-      html5QrCodeScanner = new Html5Qrcode("reader");
-      html5QrCodeScanner.start(
-        { facingMode: "environment" },
-        { 
-          fps: 15, 
-          qrbox: { width: 250, height: 250 },
-          experimentalFeatures: { useBarCodeDetectorIfSupported: true }
-        },
-        (decodedText) => {
-          try {
-            const parsedData = JSON.parse(decodedText);
-            if (prosesDataImporAdmin(parsedData)) {
-              localStorage.setItem("umkm_client_logged", "true");
-              if (html5QrCodeScanner && html5QrCodeScanner.isScanning) {
-                html5QrCodeScanner.stop().then(() => {
-                  readerDiv.style.display = "none";
-                  cameraActive = false;
-                  loginScreen.style.display = "none";
-                  mainAppContent.style.display = "block";
-                  inisisasiAplikasiUtama();
-                  tampilkanToast(`✓ Barcode ${storeIdentity.name} berhasil dipindai!`);
-                }).catch(() => {
-                  readerDiv.style.display = "none";
-                  cameraActive = false;
-                  loginScreen.style.display = "none";
-                  mainAppContent.style.display = "block";
-                  inisisasiAplikasiUtama();
-                });
-              } else {
-                readerDiv.style.display = "none";
-                cameraActive = false;
-                loginScreen.style.display = "none";
-                mainAppContent.style.display = "block";
-                inisisasiAplikasiUtama();
-                tampilkanToast(`✓ Barcode ${storeIdentity.name} berhasil dipindai!`);
-              }
-            }
-          } catch (err) {
-            console.log("Menunggu fokus QR code yang valid...");
-          }
-        },
-        () => {}
-      ).catch(() => { alert("Tidak dapat mengakses kamera. Pastikan izin kamera aktif."); });
-    } else {
-      if (html5QrCodeScanner && html5QrCodeScanner.isScanning) {
-        html5QrCodeScanner.stop().then(() => {
-          readerDiv.style.display = "none";
-          cameraActive = false;
-        }).catch(() => {
-          readerDiv.style.display = "none";
-          cameraActive = false;
-        });
-      } else {
-        readerDiv.style.display = "none";
-        cameraActive = false;
-      }
-    }
-  });
-
-  const btnLogout = document.getElementById("btnLogoutApp");
-  if (btnLogout) {
-    btnLogout.addEventListener("click", () => {
-      if (confirm("Yakin ingin keluar dari sesi menu ini?")) {
-        localStorage.removeItem("umkm_client_logged");
-        localStorage.removeItem("umkm_nama_pemesan");
-        localStorage.removeItem("umkm_no_meja");
-        localStorage.removeItem("umkm_keranjang");
-        localStorage.removeItem("umkm_client_store_identity");
-        localStorage.removeItem("umkm_client_menu_custom");
-        location.reload();
-      }
-    });
-  }
-});
-
-function inisisasiAplikasiUtama() {
-  applyStoreIdentity();
-
-  localStorage.removeItem("umkm_nama_pemesan");
-  localStorage.removeItem("umkm_no_meja");
-  const inputNama = document.getElementById("customerName");
-  const inputMeja = document.getElementById("tableNumber");
-  if (inputNama) inputNama.value = "";
-  if (inputMeja) inputMeja.value = "";
-
   DATA_MENU = [...menuCustom];
   renderKategoriDrawer();
   renderMenu();
@@ -539,4 +351,4 @@ function inisisasiAplikasiUtama() {
   });
 
   document.getElementById("btnSendWhatsApp").addEventListener("click", kirimKeWhatsApp);
-}
+});

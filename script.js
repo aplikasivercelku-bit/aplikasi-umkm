@@ -374,7 +374,7 @@ function kirimKeWhatsApp() {
   const inputNama = document.getElementById("customerName");
   const inputMeja = document.getElementById("tableNumber");
   const namaPemesan = inputNama ? inputNama.value.trim() : "Tamu";
-  const nomorMeja = inputMeja ? inputMeja.value.trim() : "";
+  const teksMeja = inputMeja ? inputMeja.value.trim() : "";
 
   if (!namaPemesan) {
     alert("Mohon isi Nama Lengkap pemesan.");
@@ -391,12 +391,13 @@ function kirimKeWhatsApp() {
 
   const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
   
-  // Logika pengecekan nomor meja: jika kosong diganti Keterangan/Take Away, jika ada disematkan
-  let infoMejaLabel = "No. Meja";
-  let infoMejaValue = nomorMeja;
-  if (!nomorMeja) {
-    infoMejaLabel = "Keterangan / Tipe";
-    infoMejaValue = "Take Away";
+  // Logika baru: Jika kosong atau bernilai "take away" (case-insensitive), label jadi Keterangan. Jika ada angka/meja, tetap No. Meja.
+  let infoLabel = "No. Meja";
+  let infoValue = teksMeja;
+  
+  if (!teksMeja || teksMeja.toLowerCase() === "take away") {
+    infoLabel = "Keterangan";
+    infoValue = "Take Away";
   }
 
   let labelBayar = "Tunai (Bayar di Kasir)";
@@ -409,7 +410,7 @@ function kirimKeWhatsApp() {
   let pesanWA = `*HALO ${currentStore.name.toUpperCase()}, SAYA MAU PESAN MENU*\n==============================\n`;
   pesanWA += `*No. Order:* ${orderId}\n`;
   pesanWA += `*Nama Pemesan:* ${namaPemesan}\n`;
-  pesanWA += `*${infoMejaLabel}:* ${infoMejaValue}\n`;
+  pesanWA += `*${infoLabel}:* ${infoValue}\n`;
   pesanWA += `*Pembayaran:* ${labelBayar}\n`;
   pesanWA += `*Status:* ${statusBayar}\n`;
   pesanWA += `==============================\n\n*DAFTAR PESANAN:*\n`;

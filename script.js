@@ -1,9 +1,14 @@
 const NOMOR_WA = "6287877611218";
 
-// Data menu bawaan default jika belum ada data kustom dari admin
+let storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || {
+  name: "Kedai Nusantara",
+  logo: "KN",
+  qrisImg: ""
+};
+
 let menuCustom = JSON.parse(localStorage.getItem("umkm_client_menu_custom")) || [
   { id: 1, nama: "Nasi Goreng Spesial", kategori: "makanan-berat", labelKategori: "Makanan Berat", harga: 20000, deskripsi: "Nasi goreng komplit dengan telur dan ayam.", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Nasi+Goreng" },
-  { id: 2, nama: "Es Kopi Susu Gula Aren", kategori: "kopi", labelKategori: "Kopi", harga: 18000, deskripsi: "Kopi espresso dengan susu segar dan manisnya gula aren.", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Es+Kopi+Susu" }
+  { id: 2, nama: "Es Kopi Susu Gula Aren", kategori: "kopi", labelKategori: "Kopi", harga: 18000, deskripsi: "Kopi espresso dengan susu segar dan gula aren.", gambar: "https://placehold.co/400x300/1f1f24/f59e0b?text=Es+Kopi+Susu" }
 ];
 
 let DATA_MENU = [...menuCustom];
@@ -12,6 +17,8 @@ let kategoriAktif = localStorage.getItem("umkm_kategori_aktif") || "semua";
 let itemDipilih = null;
 let qtyModal = 1;
 let kataKunciCari = "";
+let metodePembayaran = "tunai"; // tunai atau qris
+let base64BuktiBayar = "";
 
 const DAFTAR_KATEGORI = [
   { id: "semua", nama: "Semua Menu" },
@@ -24,6 +31,14 @@ const DAFTAR_KATEGORI = [
   { id: "menu-paket", nama: "Menu Paket" },
   { id: "tambahan", nama: "Tambahan / Topping" }
 ];
+
+function applyClientIdentity() {
+  if (storeIdentity.name) {
+    document.title = `${storeIdentity.name} - Menu Digital`;
+    document.querySelectorAll("#navBrandTitle").forEach(el => el.textContent = storeIdentity.name);
+    document.querySelectorAll("#navBrandLogo").forEach(el => el.textContent = storeIdentity.logo);
+  }
+}
 
 function formatRupiah(angka) {
   return "Rp " + angka.toLocaleString("id-ID");
@@ -74,17 +89,14 @@ function renderMenu() {
 
   const katObj = DAFTAR_KATEGORI.find((k) => k.id === kategoriAktif);
   const namaKategori = katObj ? katObj.nama : "Semua Menu";
-
   let menuTersaring = kategoriAktif === "semua" ? DATA_MENU : DATA_MENU.filter((item) => item.kategori === kategoriAktif);
 
   if (kataKunciCari !== "") {
     const keyword = kataKunciCari.toLowerCase();
     menuTersaring = menuTersaring.filter((item) =>
-      item.nama.toLowerCase().includes(keyword) ||
-      item.deskripsi.toLowerCase().includes(keyword) ||
-      item.labelKategori.toLowerCase().includes(keyword)
+      item.nama.toLowerCase().includes(keyword) || item.deskripsi.toLowerCase().includes(keyword)
     );
-    titleEl.textContent = `Hasil Pencarian: "${kataKunciCari}"`;
+    titleEl.textContent = `Pencarian: "${kataKunciCari}"`;
   } else {
     titleEl.textContent = namaKategori;
   }
@@ -93,12 +105,7 @@ function renderMenu() {
   container.innerHTML = "";
 
   if (menuTersaring.length === 0) {
-    container.innerHTML = `
-      <div class="empty-search-state">
-        <p style="font-size: 1rem; margin-bottom: 6px; color: var(--text-main);">Menu "<strong>${kataKunciCari}</strong>" tidak ditemukan</p>
-        <small>Coba kata kunci lain atau pilih kategori "Semua Menu".</small>
-      </div>
-    `;
+    container.innerHTML = `<div class="empty-search-state"><p>Menu "<strong>${kataKunciCari}</strong>" tidak ditemukan.</p></div>`;
     return;
   }
 
@@ -144,11 +151,6 @@ function tutupModalItem() {
   document.getElementById("itemModal").classList.remove("active");
 }
 
-function updateHargaModal() {
-  document.getElementById("modalQtyValue").textContent = qtyModal;
-  document.getElementById("modalTotalPrice").textContent = formatRupiah(itemDipilih.harga * qtyModal);
-}
-
 function tambahKeKeranjang() {
   if (!itemDipilih) return;
   const catatan = document.getElementById("inputCatatan").value.trim();
@@ -158,7 +160,6 @@ function tambahKeKeranjang() {
     keranjang[indexSama].qty += qtyModal;
   } else {
     keranjang.push({
-      uid: Date.now(),
       id: itemDipilih.id,
       nama: itemDipilih.nama,
       harga: itemDipilih.harga,
@@ -173,22 +174,46 @@ function tambahKeKeranjang() {
   tampilkanToast(`✓ ${itemDipilih.nama} masuk keranjang!`);
 }
 
+function pilihMetodeBayar(metode) {
+  metodePembayaran = metode;
+  const btnTunai = document.getElementById("btnMethodTunai");
+  const btnQris = document.getElementById("btnMethodQris");
+  const qrisContainer = document.getElementById("qrisSectionContainer");
+  const displayQrisImg = document.getElementById("displayQrisImage");
+  const noQrisText = document.getElementById("noQrisPlaceholder");
+
+  if (metode === "tunai") {
+    btnTunai.classList.add("active");
+    btnQris.classList.remove("active");
+    qrisContainer.style.display = "none";
+  } else {
+    btnQris.classList.add("active");
+    btnTunai.classList.remove("active");
+    qrisContainer.style.display = "block";
+
+    if (storeIdentity.qrisImg) {
+      displayQrisImg.src = storeIdentity.qrisImg;
+      displayQrisImg.style.display = "inline-block";
+      noQrisText.style.display = "none";
+    } else {
+      displayQrisImg.style.display = "none";
+      noQrisText.style.display = "block";
+    }
+  }
+}
+
 function updateTampilanKeranjang() {
   const totalQty = keranjang.reduce((acc, item) => acc + item.qty, 0);
   const totalHarga = keranjang.reduce((acc, item) => acc + item.harga * item.qty, 0);
 
-  const badge = document.getElementById("cartCountBadge");
-  if (badge) badge.textContent = totalQty;
-
+  document.getElementById("cartCountBadge").textContent = totalQty;
   const floatingBar = document.getElementById("floatingCart");
-  if (floatingBar) {
-    if (totalQty > 0) {
-      floatingBar.style.display = "flex";
-      document.getElementById("floatingQty").textContent = `${totalQty} Item di Keranjang`;
-      document.getElementById("floatingTotal").textContent = formatRupiah(totalHarga);
-    } else {
-      floatingBar.style.display = "none";
-    }
+  if (totalQty > 0) {
+    floatingBar.style.display = "flex";
+    document.getElementById("floatingQty").textContent = `${totalQty} Item di Keranjang`;
+    document.getElementById("floatingTotal").textContent = formatRupiah(totalHarga);
+  } else {
+    floatingBar.style.display = "none";
   }
 
   const listContainer = document.getElementById("cartItemsList");
@@ -223,8 +248,7 @@ function updateTampilanKeranjang() {
     listContainer.appendChild(div);
   });
 
-  const grandTotalEl = document.getElementById("cartGrandTotal");
-  if (grandTotalEl) grandTotalEl.textContent = formatRupiah(totalHarga);
+  document.getElementById("cartGrandTotal").textContent = formatRupiah(totalHarga);
 }
 
 function ubahQtyKeranjang(index, delta) {
@@ -247,20 +271,33 @@ function kirimKeWhatsApp() {
   const nomorMeja = inputMeja.value.trim();
 
   if (!namaPemesan) {
-    alert("Mohon isi Nama Lengkap pemesan terlebih dahulu.");
+    alert("Mohon isi Nama Lengkap pemesan.");
     inputNama.focus();
     return;
   }
-
   if (keranjang.length === 0) {
     alert("Keranjang pesanan masih kosong.");
     return;
   }
+  if (metodePembayaran === "qris" && !base64BuktiBayar) {
+    alert("Anda memilih QRIS. Mohon unggah foto bukti pembayaran terlebih dahulu.");
+    return;
+  }
 
+  // Generate No Order Otomatis
+  const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
   const keteranganMeja = nomorMeja !== "" ? nomorMeja : "Take Away";
+  const labelBayar = metodePembayaran === "qris" ? "QRIS / Transfer (Bukti Terlampir)" : "Tunai (Bayar di Kasir)";
 
   let pesanWA = `*HALO, SAYA MAU PESAN MENU*\n==============================\n`;
-  pesanWA += `*Nama Pemesan:* ${namaPemesan}\n*No. Meja:* ${keteranganMeja}\n==============================\n\n*DAFTAR PESANAN:*\n`;
+  pesanWA += `*No. Order:* ${orderId}\n`;
+  pesanWA += `*Nama Pemesan:* ${namaPemesan}\n`;
+  pesanWA += `*No. Meja:* ${keteranganMeja}\n`;
+  pesanWA += `*Pembayaran:* ${labelBayar}\n`;
+  if (metodePembayaran === "qris") {
+    pesanWA += `*Status:* [Bukti Pembayaran QRIS Telah Diunggah Client]\n`;
+  }
+  pesanWA += `==============================\n\n*DAFTAR PESANAN:*\n`;
 
   let grandTotal = 0;
   keranjang.forEach((item, i) => {
@@ -274,27 +311,19 @@ function kirimKeWhatsApp() {
 
   window.open(`https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(pesanWA)}`, "_blank");
 
+  // Reset
   inputNama.value = "";
   inputMeja.value = "";
   keranjang = [];
+  base64BuktiBayar = "";
   simpanStateLocal();
   updateTampilanKeranjang();
   document.getElementById("cartModal").classList.remove("active");
-  tampilkanToast("✓ Pesanan diteruskan ke WA & keranjang dikosongkan!");
-}
-
-function bukaDrawer() {
-  document.getElementById("categoryDrawer").classList.add("active");
-  document.getElementById("drawerOverlay").classList.add("active");
-}
-
-function tutupDrawer() {
-  document.getElementById("categoryDrawer").classList.remove("active");
-  document.getElementById("drawerOverlay").classList.remove("active");
+  tampilkanToast("✓ Pesanan berhasil dikirim ke WhatsApp!");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  DATA_MENU = [...menuCustom];
+  applyClientIdentity();
   renderKategoriDrawer();
   renderMenu();
   updateTampilanKeranjang();
@@ -316,38 +345,46 @@ document.addEventListener("DOMContentLoaded", () => {
       searchInput.value = "";
       btnClearSearch.style.display = "none";
       renderMenu();
-      searchInput.focus();
     });
   }
 
-  document.getElementById("btnOpenDrawer").addEventListener("click", bukaDrawer);
+  document.getElementById("btnOpenDrawer").addEventListener("click", () => {
+    document.getElementById("categoryDrawer").classList.add("active");
+    document.getElementById("drawerOverlay").classList.add("active");
+  });
+
+  const tutupDrawer = () => {
+    document.getElementById("categoryDrawer").classList.remove("active");
+    document.getElementById("drawerOverlay").classList.remove("active");
+  };
   document.getElementById("btnCloseDrawer").addEventListener("click", tutupDrawer);
   document.getElementById("drawerOverlay").addEventListener("click", tutupDrawer);
 
   document.getElementById("btnCloseItemModal").addEventListener("click", tutupModalItem);
-  document.getElementById("itemModal").addEventListener("click", (e) => {
-    if (e.target.id === "itemModal") tutupModalItem();
-  });
-
   document.getElementById("btnMinusQty").addEventListener("click", () => {
-    if (qtyModal > 1) { qtyModal--; updateHargaModal(); }
+    if (qtyModal > 1) { qtyModal--; document.getElementById("modalQtyValue").textContent = qtyModal; document.getElementById("modalTotalPrice").textContent = formatRupiah(itemDipilih.harga * qtyModal); }
   });
   document.getElementById("btnPlusQty").addEventListener("click", () => {
-    qtyModal++; updateHargaModal();
+    qtyModal++; document.getElementById("modalQtyValue").textContent = qtyModal; document.getElementById("modalTotalPrice").textContent = formatRupiah(itemDipilih.harga * qtyModal);
   });
   document.getElementById("btnAddToCart").addEventListener("click", tambahKeKeranjang);
 
-  document.getElementById("btnOpenCart").addEventListener("click", () => {
-    document.getElementById("cartModal").classList.add("active");
-  });
-  document.getElementById("btnFloatingOpenCart").addEventListener("click", () => {
-    document.getElementById("cartModal").classList.add("active");
-  });
-  document.getElementById("btnCloseCartModal").addEventListener("click", () => {
-    document.getElementById("cartModal").classList.remove("active");
-  });
-  document.getElementById("cartModal").addEventListener("click", (e) => {
-    if (e.target.id === "cartModal") document.getElementById("cartModal").classList.remove("active");
+  document.getElementById("btnOpenCart").addEventListener("click", () => document.getElementById("cartModal").classList.add("active"));
+  document.getElementById("btnFloatingOpenCart").addEventListener("click", () => document.getElementById("cartModal").classList.add("active"));
+  document.getElementById("btnCloseCartModal").addEventListener("click", () => document.getElementById("cartModal").classList.remove("active"));
+
+  document.getElementById("clientPaymentProofFile").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        base64BuktiBayar = evt.target.result;
+        const preview = document.getElementById("clientProofPreview");
+        preview.src = base64BuktiBayar;
+        document.getElementById("proofPreviewContainer").style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    }
   });
 
   document.getElementById("btnSendWhatsApp").addEventListener("click", kirimKeWhatsApp);

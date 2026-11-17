@@ -1,8 +1,8 @@
 let NOMOR_WA = "6287877611218";
 
 let storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || {
-  name: "Kedai Nusantara",
-  logo: "KN",
+  name: "Caffe Santai HIHIHI",
+  logo: "CS",
   wa: "6287877611218",
   qrisText: "OLAN MAULANA Bank Mandiri 1630011235432"
 };
@@ -10,43 +10,34 @@ let storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || {
 let defaultMenuList = [
   { 
     id: 1718000001, 
-    nama: "Roti Bakar", 
-    kategori: "bakaran", 
-    labelKategori: "BAKARAN", 
-    harga: 16000, 
-    deskripsi: "ENAK", 
-    gambar: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=400&q=80" 
-  },
-  { 
-    id: 1718000002, 
-    nama: "Red Velvet", 
+    nama: "Macha", 
     kategori: "kopi", 
     labelKategori: "KOPI", 
     harga: 25000, 
-    deskripsi: "Segarrr", 
+    deskripsi: "Enak & Lezat", 
     gambar: "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=400&q=80" 
   },
   { 
-    id: 1718000003, 
-    nama: "Kentang Goreng", 
+    id: 1718000002, 
+    nama: "Pisang Goreng Crispy", 
     kategori: "tambahan", 
     labelKategori: "TAMBAHAN / TOPPING", 
-    harga: 20000, 
-    deskripsi: "Gurih & Enak", 
+    harga: 15000, 
+    deskripsi: "Gurih & Renyah", 
     gambar: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=400&q=80" 
   },
   { 
-    id: 1718000004, 
-    nama: "Es Alpukat", 
-    kategori: "non-kopi", 
-    labelKategori: "NON-KOPI", 
-    harga: 15000, 
-    deskripsi: "Segar", 
-    gambar: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=400&q=80" 
+    id: 1718000003, 
+    nama: "Nasi Ikan Bakar + Minum", 
+    kategori: "menu-paket", 
+    labelKategori: "MENU PAKET", 
+    harga: 35000, 
+    deskripsi: "Nikmat & Mengenyangkan", 
+    gambar: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=400&q=80" 
   }
 ];
 
-// Tangkap data sinkronisasi dari parameter URL (?data=...) saat Barcode dari Panel Admin di-scan
+// Sinkronisasi data dari parameter URL Barcode (?data=...) jika ada
 function sinkronisasiDariUrlBarcode() {
   try {
     const params = new URLSearchParams(window.location.search);
@@ -391,7 +382,7 @@ function kirimKeWhatsApp() {
 
   const orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
   
-  // Logika baru: Jika kosong atau bernilai "take away" (case-insensitive), label jadi Keterangan. Jika ada angka/meja, tetap No. Meja.
+  // Logika nomor meja / take away sesuai instruksi
   let infoLabel = "No. Meja";
   let infoValue = teksMeja;
   
@@ -401,7 +392,7 @@ function kirimKeWhatsApp() {
   }
 
   let labelBayar = "Tunai (Bayar di Kasir)";
-  let statusBayar = "Pembayaran selesai.";
+  let statusBayar = "Pembayaran selesai (Cek segera Ya)";
   
   if (metodePembayaran === "qris") {
     labelBayar = "QRIS / Transfer (Kirim Bukti Pembayaran segera ya)";

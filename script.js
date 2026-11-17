@@ -6,10 +6,24 @@ let storeIdentity = JSON.parse(localStorage.getItem("umkm_store_identity")) || {
   qrisText: "OLAN MAULANA Bank Mandiri 1630011235432"
 };
 
-// SINKRONISASI UTAMA: Membaca murni dari input link sigmawire.net di panel admin
-let menuCustom = JSON.parse(localStorage.getItem("umkm_menu_custom")) || [];
+// DATA DEFAULT MENU (Menjamin menu dan gambar sigmawire.net selalu tampil di client meskipun diakses dari scan barcode baru)
+let defaultMenuList = [
+  { 
+    id: 1718000001, 
+    nama: "Es Cerry", 
+    kategori: "non-kopi", 
+    labelKategori: "Non-Kopi", 
+    harga: 25000, 
+    deskripsi: "Segar & Enak", 
+    gambar: "https://cdn.corenexis.com/f/125bqwY1.jpg" 
+  }
+];
 
-// Jika localStorage kosong, sediakan array kosong agar murni dikontrol dari panel admin
+let menuCustom = JSON.parse(localStorage.getItem("umkm_menu_custom")) || [];
+if (menuCustom.length === 0) {
+  menuCustom = defaultMenuList;
+}
+
 let DATA_MENU = [...menuCustom];
 let keranjang = JSON.parse(localStorage.getItem("umkm_keranjang")) || [];
 let kategoriAktif = localStorage.getItem("umkm_kategori_aktif") || "semua";
@@ -62,7 +76,7 @@ function muatDataMenuTerbaru() {
   if (latestCustomMenu && latestCustomMenu.length > 0) {
     DATA_MENU = [...latestCustomMenu];
   } else {
-    DATA_MENU = [];
+    DATA_MENU = [...defaultMenuList];
   }
 }
 
@@ -118,14 +132,14 @@ function renderMenu() {
   container.innerHTML = "";
 
   if (menuTersaring.length === 0) {
-    container.innerHTML = `<div class="empty-search-state" style="text-align:center; padding:30px; color:var(--text-muted);"><p>Belum ada menu yang ditambahkan dari Panel Admin.</p></div>`;
+    container.innerHTML = `<div class="empty-search-state" style="text-align:center; padding:30px; color:var(--text-muted);"><p>Menu "<strong>${kataKunciCari}</strong>" tidak ditemukan.</p></div>`;
     return;
   }
 
   menuTersaring.forEach((item) => {
     const card = document.createElement("article");
     card.className = "menu-card";
-    // Memastikan tag img mengambil URL persis dari link sigmawire.net yang diinput admin
+    // Memastikan gambar merender URL dari sigmawire.net secara akurat
     card.innerHTML = `
       <div class="card-img-box" onclick="bukaModalItem(${item.id})">
         <img src="${item.gambar}" alt="${item.nama}" onerror="this.src='https://placehold.co/400x300/1f1f24/f59e0b?text=${encodeURIComponent(item.nama)}'">

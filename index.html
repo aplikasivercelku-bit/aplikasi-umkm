@@ -13,17 +13,11 @@
     <div class="login-card">
       <div class="brand-logo" id="loginLogoText" style="margin: 0 auto 16px auto; width: 56px; height: 56px; font-size: 1.3rem;">KN</div>
       <h2 id="loginTitleText">Kedai Nusantara</h2>
-      <p>Silakan unggah file gambar barcode dari admin atau gunakan kamera untuk memindai menu.</p>
+      <p>Silakan gunakan kamera untuk memindai barcode menu.</p>
       
-      <div class="form-group" style="text-align: left;">
-        <label>Pilih File Gambar Barcode (.png) / JSON</label>
-        <input type="file" id="importJsonFileInput" accept=".json,image/*" style="background: var(--bg-dark); border: 1px solid var(--border-color); padding: 10px; border-radius: 10px; width: 100%; color: var(--text-main);">
-      </div>
-      <button class="btn-primary btn-full" id="btnImportAndLogin" style="margin-bottom: 12px;">Masuk dengan Barcode / File</button>
-
-      <div style="border-top: 1px solid var(--border-color); padding-top: 12px;">
-        <button class="btn-pesan btn-full" id="btnToggleCameraLogin" style="padding: 10px;">📷 Scan Barcode dengan Kamera</button>
-        <div id="reader" style="width: 100%; margin-top: 10px; display: none;"></div>
+      <div style="padding-top: 4px;">
+        <button class="btn-pesan btn-full" id="btnToggleCameraLogin" style="padding: 12px; font-weight: 700;">📷 Scan Barcode dengan Kamera</button>
+        <div id="reader" style="width: 100%; margin-top: 12px; display: none;"></div>
       </div>
     </div>
   </div>

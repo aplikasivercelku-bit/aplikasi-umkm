@@ -151,7 +151,7 @@ async function tarikMenuTerbaruDariCloud() {
       renderMenu();
     }
   } catch (err) {
-    console.warn("Cloud sync tidak terjangkau, menggunakan data lokal/URL:", err);
+    console.warn("Cloud sync tidak terjangkau:", err);
   }
 }
 

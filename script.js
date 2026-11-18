@@ -111,7 +111,6 @@ function sinkronisasiDariUrlBarcode() {
 }
 
 // 2. Tarik menu terbaru secara otomatis dari Cloud Sync berdasarkan ID Toko (?store=...)
-// Sehingga meskipun menggunakan 1 Barcode lama, menu baru dari Panel Admin langsung muncul otomatis!
 async function tarikMenuTerbaruDariCloud() {
   const params = new URLSearchParams(window.location.search);
   const currentStore = JSON.parse(localStorage.getItem("umkm_store_identity")) || storeIdentity;
@@ -515,7 +514,6 @@ document.addEventListener("DOMContentLoaded", () => {
   renderMenu();
   updateTampilanKeranjang();
 
-  // Sinkronisasi otomatis menu terbaru dari Cloud Sync
   tarikMenuTerbaruDariCloud();
 
   if (baruDisinkronkan) {
